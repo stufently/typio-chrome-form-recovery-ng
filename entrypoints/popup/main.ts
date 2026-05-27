@@ -6,6 +6,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import browser from 'webextension-polyfill';
 import { sendMessage, sendMessageToTab } from '../../lib/messaging';
+import { t } from '../../lib/i18n';
 import type { Entry, Message } from '../../lib/types';
 
 @customElement('typio-popup')
@@ -95,6 +96,28 @@ export class TypioPopup extends LitElement {
       border-top: 1px solid #fecaca;
       font-size: 12px;
     }
+    .actions {
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px;
+      border-top: 1px solid #eee;
+      background: #fafbfc;
+    }
+    .actions button {
+      flex: 1;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      border: 0;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font: inherit;
+      font-size: 12px;
+    }
+    .actions button.secondary {
+      background: #f3f4f6;
+      color: #111;
+    }
   `;
 
   @state() private entries: Entry[] = [];
@@ -124,6 +147,18 @@ export class TypioPopup extends LitElement {
   }
 
   @state() private restoreError = '';
+
+  private async openRecoveryDialog(): Promise<void> {
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
+    await sendMessageToTab(tab.id, { type: 'OPEN_RECOVERY_DIALOG' });
+    window.close();
+  }
+
+  private async openOptions(): Promise<void> {
+    await browser.runtime.openOptionsPage();
+    window.close();
+  }
 
   private async restore(entry: Entry): Promise<void> {
     if (entry.id === undefined) return;
@@ -172,6 +207,10 @@ export class TypioPopup extends LitElement {
               )}
             </ul>`}
       ${this.restoreError ? html`<div class="error">${this.restoreError}</div>` : nothing}
+      <div class="actions">
+        <button @click=${this.openRecoveryDialog}>${t('popup_open_recovery')}</button>
+        <button class="secondary" @click=${this.openOptions}>${t('popup_open_options')}</button>
+      </div>
       <footer>
         <span>Stored locally · no telemetry</span>
         <a

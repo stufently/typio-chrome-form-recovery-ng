@@ -27,8 +27,7 @@ export default defineConfig({
         128: 'icons/128.png',
         512: 'icons/512.png',
       },
-      // contextMenus is requested at Stage 3 when the menu code lands.
-      permissions: ['storage', 'alarms', 'activeTab'],
+      permissions: ['storage', 'alarms', 'contextMenus', 'activeTab'],
       // host_permissions intentionally empty — see docs/PERMISSIONS.md.
       // Content script declares <all_urls> in content.ts entrypoint config.
       action: {

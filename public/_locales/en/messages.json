@@ -22,5 +22,37 @@
   "context_menu_recover": {
     "message": "Recover text in this field",
     "description": "Right-click menu item shown on editable fields."
-  }
+  },
+
+  "popup_loading": { "message": "Loading…" },
+  "popup_empty": {
+    "message": "No saved drafts for this site yet. Start typing in any text field — Typio NG will autosave after a short pause."
+  },
+  "popup_open_recovery": { "message": "Open recovery dialog" },
+  "popup_open_options": { "message": "Options" },
+  "popup_restore_failed": {
+    "message": "Could not restore — the field is no longer on the page. Try the recovery dialog."
+  },
+
+  "options_title": { "message": "Typio Chrome Form Recovery NG — Options" },
+  "options_retention": { "message": "Keep drafts for" },
+  "options_retention_days": {
+    "message": "$DAYS$ days",
+    "placeholders": { "days": { "content": "$1" } }
+  },
+  "options_blocklist": { "message": "Hostname blocklist" },
+  "options_blocklist_help": {
+    "message": "One hostname per line. Use a leading dot to match all subdomains (e.g. .bank.com)."
+  },
+  "options_export": { "message": "Export data (JSON)" },
+  "options_import": { "message": "Import data (JSON)" },
+  "options_import_dry_run": { "message": "Validate (dry run)" },
+  "options_import_apply": { "message": "Apply" },
+  "options_saved": { "message": "Saved." },
+
+  "recovery_title": { "message": "Typio NG — recovery" },
+  "recovery_search": { "message": "Search drafts" },
+  "recovery_restore": { "message": "Restore" },
+  "recovery_close": { "message": "Close" },
+  "recovery_empty": { "message": "No drafts saved for this site yet." }
 }

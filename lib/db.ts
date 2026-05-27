@@ -265,6 +265,24 @@ export async function countEntries(): Promise<number> {
   return db.count('entries');
 }
 
+/**
+ * Walks every stored entry. Used only for export and for dedupe lookups during
+ * import — UI flows should always query by host/fieldKey instead.
+ */
+export async function dumpAllEntries(): Promise<Entry[]> {
+  const db = await getDb();
+  const tx = db.transaction('entries', 'readonly');
+  const idx = tx.store.index('by-updatedAt');
+  const out: Entry[] = [];
+  let cursor = await idx.openCursor(null, 'prev');
+  while (cursor) {
+    out.push(cursor.value);
+    cursor = await cursor.continue();
+  }
+  await tx.done;
+  return out;
+}
+
 export async function upsertFieldMeta(meta: FieldMeta): Promise<void> {
   const db = await getDb();
   await db.put('fields', meta);

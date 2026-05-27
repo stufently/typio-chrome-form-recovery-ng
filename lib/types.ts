@@ -81,9 +81,31 @@ export type Message =
   | { type: 'QUERY_ENTRIES'; host: string; fieldKey?: string; limit?: number }
   | { type: 'DELETE_ENTRY'; id: number }
   | { type: 'OPEN_RECOVERY_DIALOG' }
+  | { type: 'CONTEXT_MENU_RECOVER' }
   | { type: 'RESTORE_ENTRY'; payload: RestoreEntryPayload }
+  | { type: 'RESTORE_INTO_LAST_FOCUSED'; value: string }
+  | { type: 'EXPORT_DATA' }
+  | { type: 'IMPORT_DATA'; bundle: ImportBundle; dryRun: boolean; byteSize?: number }
   | { type: 'GET_SETTINGS' }
   | { type: 'UPDATE_SETTINGS'; settings: Partial<Settings> }
+  | { type: 'CLEAR_DATA_FOR_HOST'; host: string }
   | { type: 'PING' };
+
+export interface ExportBundle {
+  schemaVersion: 1;
+  exportedAt: number;
+  appVersion: string;
+  settings: Settings;
+  entries: Entry[];
+}
+
+export type ImportBundle = unknown;
+
+export interface ImportSummary {
+  ok: boolean;
+  reason?: string;
+  entries: { willInsert: number; willSkipDuplicate: number; invalid: number };
+  settings: { willOverwrite: boolean };
+}
 
 export type MessageResponse<T = unknown> = { ok: true; data?: T } | { ok: false; error: string };

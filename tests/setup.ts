@@ -14,10 +14,24 @@ const browserStub = {
     onMessage: { addListener: () => {}, removeListener: () => {} },
     onInstalled: { addListener: () => {} },
     onStartup: { addListener: () => {} },
+    getManifest: () => ({ version: '0.0.0-test' }),
+  },
+  i18n: {
+    // Default to "no message" so unit code falls back to the key — overridable
+    // per-test by replacing this fn.
+    getMessage: (_key: string, _subs?: string | string[]) => '',
   },
   alarms: {
     create: async () => undefined,
     onAlarm: { addListener: () => {} },
+  },
+  contextMenus: {
+    create: () => 'menu-id',
+    remove: async () => undefined,
+    onClicked: { addListener: () => {} },
+  },
+  commands: {
+    onCommand: { addListener: () => {} },
   },
   tabs: {
     query: async () => [],
