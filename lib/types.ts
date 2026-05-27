@@ -45,6 +45,7 @@ export interface Settings {
   retentionDays: number;
   blocklistHostnames: string[];
   maxEntriesPerField: number;
+  maxEntriesPerHost: number;
   saveInIncognito: false; // intentionally a literal — see docs/THREAT_MODEL.md
   schemaVersion: 1;
 }
@@ -53,20 +54,36 @@ export const DEFAULT_SETTINGS: Settings = {
   retentionDays: 30,
   blocklistHostnames: [],
   maxEntriesPerField: 50,
+  maxEntriesPerHost: 1000,
   saveInIncognito: false,
   schemaVersion: 1,
 };
 
 // Typed runtime messaging between content / popup / options / service worker.
 // See docs/THREAT_MODEL.md — only typed messages cross trust boundaries.
+
+export interface SaveEntryPayload {
+  host: string;
+  pathname: string;
+  fieldKey: string;
+  value: string;
+  type: Entry['type'];
+}
+
+export interface RestoreEntryPayload {
+  entryId: number;
+  fieldKey: string;
+  value: string;
+}
+
 export type Message =
-  | { type: 'SAVE_ENTRY'; entry: Omit<Entry, 'id' | 'createdAt' | 'updatedAt'> }
+  | { type: 'SAVE_ENTRY'; payload: SaveEntryPayload }
   | { type: 'QUERY_ENTRIES'; host: string; fieldKey?: string; limit?: number }
   | { type: 'DELETE_ENTRY'; id: number }
   | { type: 'OPEN_RECOVERY_DIALOG' }
+  | { type: 'RESTORE_ENTRY'; payload: RestoreEntryPayload }
   | { type: 'GET_SETTINGS' }
-  | { type: 'UPDATE_SETTINGS'; settings: Partial<Settings> };
+  | { type: 'UPDATE_SETTINGS'; settings: Partial<Settings> }
+  | { type: 'PING' };
 
-export type MessageResponse =
-  | { ok: true; data?: unknown }
-  | { ok: false; error: string };
+export type MessageResponse<T = unknown> = { ok: true; data?: T } | { ok: false; error: string };

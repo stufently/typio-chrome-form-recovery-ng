@@ -46,17 +46,17 @@ See [docs/TARGETS.md](docs/TARGETS.md) for the full browser target matrix.
 
 ## Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [PRIVACY.md](PRIVACY.md) | Privacy policy — what we collect (nothing) and where data lives (your browser only) |
-| [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Threat model, attack surface, data handling rules |
-| [docs/PERMISSIONS.md](docs/PERMISSIONS.md) | Every requested permission and its rationale |
-| [docs/TARGETS.md](docs/TARGETS.md) | Browser support matrix and build differences |
-| [CHANGELOG.md](CHANGELOG.md) | Release history (Keep a Changelog format) |
+| Document                                     | Purpose                                                                             |
+| -------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [PRIVACY.md](PRIVACY.md)                     | Privacy policy — what we collect (nothing) and where data lives (your browser only) |
+| [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md) | Threat model, attack surface, data handling rules                                   |
+| [docs/PERMISSIONS.md](docs/PERMISSIONS.md)   | Every requested permission and its rationale                                        |
+| [docs/TARGETS.md](docs/TARGETS.md)           | Browser support matrix and build differences                                        |
+| [CHANGELOG.md](CHANGELOG.md)                 | Release history (Keep a Changelog format)                                           |
 
 ## Attribution
 
-The original **Typio Form Recovery** was created by [Nicklas Sandell](https://github.com/nicklassandell) and is licensed under [CC BY-NC-ND 4.0](https://bitbucket.org/nicklassandell/chrome-form-recovery/raw/HEAD/license.txt). This extension shares no code with the original — only the *idea* of form auto-save.
+The original **Typio Form Recovery** was created by [Nicklas Sandell](https://github.com/nicklassandell) and is licensed under [CC BY-NC-ND 4.0](https://bitbucket.org/nicklassandell/chrome-form-recovery/raw/HEAD/license.txt). This extension shares no code with the original — only the _idea_ of form auto-save.
 
 Thanks also to [@tsukumijima](https://github.com/tsukumijima) and [@ctsstc](https://github.com/ctsstc) for keeping the spirit of the original alive in their forks.
 

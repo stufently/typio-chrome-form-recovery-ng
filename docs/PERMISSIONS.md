@@ -45,6 +45,7 @@ Users can change or remove the shortcut from `chrome://extensions/shortcuts`.
 **Used for:** the static content script that listens for form input across all sites. Without `<all_urls>` we cannot do auto-save on the sites you visit — that is the core feature.
 
 **Mitigation:**
+
 - The content script runs in MV3's **isolated world**: it cannot read website JavaScript variables, only the DOM.
 - It writes nothing to `window`.
 - It skips restricted schemes: `chrome://*`, `about:*`, `chromewebstore.google.com`, the browser's PDF viewer, the extension's own pages.
@@ -60,29 +61,29 @@ If you want to limit further, add hostnames to the in-extension blocklist (Optio
 
 ## What we deliberately do NOT request
 
-| Permission | Why we don't |
-|------------|--------------|
-| `tabs` | We only need tab info via `activeTab` and `sender.tab`. Full `tabs` permission lets you read every tab's URL and title — too much. |
-| `cookies` | Never. |
-| `webRequest` / `declarativeNetRequest` | We do not block, modify, or read network traffic. |
-| `notifications` | v1 has no notifications. |
-| `downloads` | Export goes through `<a download>`, not the API. |
-| `clipboardRead` / `clipboardWrite` | Recovery dialog uses the user-gesture clipboard API, which does not require permissions. |
-| `unlimitedStorage` | IndexedDB is unlimited per-origin within reason for extensions. We will revisit if we hit a real quota in production. |
-| `identity` / `oauth` | No accounts. |
-| `geolocation` | No. |
-| `nativeMessaging` | No native host. |
-| `scripting` | We use static `content_scripts` declared in manifest, not dynamic injection. If we add the recovery dialog as a programmatic injection in a future version, we will add `scripting` with a clear rationale and update this document. |
+| Permission                             | Why we don't                                                                                                                                                                                                                         |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tabs`                                 | We only need tab info via `activeTab` and `sender.tab`. Full `tabs` permission lets you read every tab's URL and title — too much.                                                                                                   |
+| `cookies`                              | Never.                                                                                                                                                                                                                               |
+| `webRequest` / `declarativeNetRequest` | We do not block, modify, or read network traffic.                                                                                                                                                                                    |
+| `notifications`                        | v1 has no notifications.                                                                                                                                                                                                             |
+| `downloads`                            | Export goes through `<a download>`, not the API.                                                                                                                                                                                     |
+| `clipboardRead` / `clipboardWrite`     | Recovery dialog uses the user-gesture clipboard API, which does not require permissions.                                                                                                                                             |
+| `unlimitedStorage`                     | IndexedDB is unlimited per-origin within reason for extensions. We will revisit if we hit a real quota in production.                                                                                                                |
+| `identity` / `oauth`                   | No accounts.                                                                                                                                                                                                                         |
+| `geolocation`                          | No.                                                                                                                                                                                                                                  |
+| `nativeMessaging`                      | No native host.                                                                                                                                                                                                                      |
+| `scripting`                            | We use static `content_scripts` declared in manifest, not dynamic injection. If we add the recovery dialog as a programmatic injection in a future version, we will add `scripting` with a clear rationale and update this document. |
 
 ## Cross-browser deltas
 
-| Browser | Notes |
-|---------|-------|
-| Chrome | All permissions above as documented. |
-| Edge | Same as Chrome (Chromium-based, MV3 identical). |
-| Opera | Same as Chrome. |
+| Browser     | Notes                                                                                                                                                                                     |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chrome      | All permissions above as documented.                                                                                                                                                      |
+| Edge        | Same as Chrome (Chromium-based, MV3 identical).                                                                                                                                           |
+| Opera       | Same as Chrome.                                                                                                                                                                           |
 | Firefox MV3 | `background.scripts` instead of `service_worker` — WXT handles this at build time. `commands` works but the default shortcut may collide with a Firefox global; users may need to rebind. |
-| Safari | Out of scope for v1 — Safari MV3 has its own host-permission flow. |
+| Safari      | Out of scope for v1 — Safari MV3 has its own host-permission flow.                                                                                                                        |
 
 ## Review
 

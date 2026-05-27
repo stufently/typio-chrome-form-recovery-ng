@@ -2,12 +2,12 @@
 
 ## Assets
 
-| Asset | Sensitivity | Where it lives |
-|-------|-------------|----------------|
-| User-typed text from regular form fields | Personal data, can include drafts, comments, search history | Browser-local IndexedDB only |
-| Hostname + URL pathname + field identifier | Browsing history fragments | Browser-local IndexedDB only |
-| Extension settings (blocklist, retention) | Low | Browser-local IndexedDB only |
-| Passwords, credit-card data, OTP codes | High | **NEVER stored** — see "Sensitive field exclusion" |
+| Asset                                      | Sensitivity                                                 | Where it lives                                     |
+| ------------------------------------------ | ----------------------------------------------------------- | -------------------------------------------------- |
+| User-typed text from regular form fields   | Personal data, can include drafts, comments, search history | Browser-local IndexedDB only                       |
+| Hostname + URL pathname + field identifier | Browsing history fragments                                  | Browser-local IndexedDB only                       |
+| Extension settings (blocklist, retention)  | Low                                                         | Browser-local IndexedDB only                       |
+| Passwords, credit-card data, OTP codes     | High                                                        | **NEVER stored** — see "Sensitive field exclusion" |
 
 ## Adversaries
 
@@ -46,14 +46,14 @@ Network arrow: **none.** The extension makes no outgoing HTTP requests. CSP `con
 
 ### 1. Malicious website
 
-| Risk | Mitigation |
-|------|------------|
-| Website reads `window.typio` or similar | Content script lives in isolated world; no globals are set on `window` |
-| Website injects fake form to trick auto-save | Sensitive detection runs on every field; `<input type="password">` etc. are always excluded; URL category check skips `/auth`, `/checkout`, etc. |
-| Website tries to overflow IndexedDB | Per-field cap (50 entries), per-host cap, dedupe by `fieldKey + textHash`, retention cleanup alarm |
-| Website hooks `IndexedDB` to read extension store | Cannot — extension origin is `chrome-extension://*`, websites cannot open that database |
-| Website fingerprints via timing of `chrome.runtime.onMessage` | All extension API calls happen async after debounce; no observable side effect on the page |
-| Website opens a closed shadow root or uses `<iframe>` to bypass | Closed shadow roots are unsupported (will not be observed). iframes are deferred to v2. We document this explicitly. |
+| Risk                                                            | Mitigation                                                                                                                                       |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Website reads `window.typio` or similar                         | Content script lives in isolated world; no globals are set on `window`                                                                           |
+| Website injects fake form to trick auto-save                    | Sensitive detection runs on every field; `<input type="password">` etc. are always excluded; URL category check skips `/auth`, `/checkout`, etc. |
+| Website tries to overflow IndexedDB                             | Per-field cap (50 entries), per-host cap, dedupe by `fieldKey + textHash`, retention cleanup alarm                                               |
+| Website hooks `IndexedDB` to read extension store               | Cannot — extension origin is `chrome-extension://*`, websites cannot open that database                                                          |
+| Website fingerprints via timing of `chrome.runtime.onMessage`   | All extension API calls happen async after debounce; no observable side effect on the page                                                       |
+| Website opens a closed shadow root or uses `<iframe>` to bypass | Closed shadow roots are unsupported (will not be observed). iframes are deferred to v2. We document this explicitly.                             |
 
 ### 2. Other extensions
 
@@ -86,19 +86,19 @@ There is no network traffic from the extension. There is nothing to MITM.
 
 Field is excluded from saving if **any** of the following match:
 
-| Layer | Rule |
-|-------|------|
-| Type | `password`, `hidden`, `file`, `submit`, `reset`, `button`, `checkbox`, `radio`, `color`, `range`, `image` |
-| Autocomplete | `cc-*`, `one-time-code`, `current-password`, `new-password` |
-| Name / id (case-insensitive, regex on word boundary) | `card`, `cvv`, `cvc`, `pin`, `otp`, `ssn`, `passwd`, `password` |
-| `aria-label` / `placeholder` / linked `<label>` text | Same regex as name/id |
-| `inputmode` | `numeric` AND (`maxlength<=8` OR matches PIN-like pattern) |
-| `pattern` attribute | regex looks like CC/CVV/PIN (`\d{16}`, `\d{3,4}`, `\d{4,8}`) |
-| Form `action` URL | `/login`, `/signin`, `/auth`, `/oauth`, `/checkout`, `/payment`, `/billing`, `/register`, `/signup` |
-| Page URL pathname | Same patterns as form action |
-| Hostname blocklist (user-defined) | Exact match or wildcard |
-| Incognito tab | Always skip |
-| Restricted scheme | `chrome://`, `chrome-extension://`, `chromewebstore.google.com`, `about:`, `view-source:`, `file://` (configurable) |
+| Layer                                                | Rule                                                                                                                |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Type                                                 | `password`, `hidden`, `file`, `submit`, `reset`, `button`, `checkbox`, `radio`, `color`, `range`, `image`           |
+| Autocomplete                                         | `cc-*`, `one-time-code`, `current-password`, `new-password`                                                         |
+| Name / id (case-insensitive, regex on word boundary) | `card`, `cvv`, `cvc`, `pin`, `otp`, `ssn`, `passwd`, `password`                                                     |
+| `aria-label` / `placeholder` / linked `<label>` text | Same regex as name/id                                                                                               |
+| `inputmode`                                          | `numeric` AND (`maxlength<=8` OR matches PIN-like pattern)                                                          |
+| `pattern` attribute                                  | regex looks like CC/CVV/PIN (`\d{16}`, `\d{3,4}`, `\d{4,8}`)                                                        |
+| Form `action` URL                                    | `/login`, `/signin`, `/auth`, `/oauth`, `/checkout`, `/payment`, `/billing`, `/register`, `/signup`                 |
+| Page URL pathname                                    | Same patterns as form action                                                                                        |
+| Hostname blocklist (user-defined)                    | Exact match or wildcard                                                                                             |
+| Incognito tab                                        | Always skip                                                                                                         |
+| Restricted scheme                                    | `chrome://`, `chrome-extension://`, `chromewebstore.google.com`, `about:`, `view-source:`, `file://` (configurable) |
 
 Implementation: see `lib/sensitive.ts` and `lib/blacklist.ts` (TBD). Unit tests in `tests/unit/sensitive.test.ts` will cover 80+ patterns.
 

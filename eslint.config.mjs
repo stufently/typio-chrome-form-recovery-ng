@@ -40,5 +40,12 @@ export default [
       ],
     },
   },
+  {
+    // Tests need DOM teardown via innerHTML='' — the rule is meant for production code.
+    files: ['tests/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': 'off',
+    },
+  },
   prettier,
 ];

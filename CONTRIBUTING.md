@@ -28,7 +28,7 @@ Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`).
 - No `innerHTML`, no `eval`, no `Function()` constructor. Lit templates handle escaping.
 - DOM I/O lives in content scripts; storage I/O lives in the service worker. Cross-script communication is typed via `lib/types.ts → Message`.
 - Public APIs in `lib/` have JSDoc; private helpers don't need it.
-- Comments explain *why*, not *what*. The code shows what.
+- Comments explain _why_, not _what_. The code shows what.
 
 ## License
 

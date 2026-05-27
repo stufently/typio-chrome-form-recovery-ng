@@ -6,7 +6,7 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   srcDir: '.',
   outDir: '.output',
-  manifest: ({ browser, manifestVersion }) => {
+  manifest: ({ browser }) => {
     const isFirefox = browser === 'firefox';
 
     return {
@@ -16,6 +16,10 @@ export default defineConfig({
         'Auto-save and recover text from web forms. Privacy-first, no servers, no telemetry. Typio-style form autosave and recovery.',
       default_locale: 'en',
       version: '0.0.0',
+      // Disable in incognito by default. The user can re-enable per browser
+      // policy, but our default privacy stance is "do not autosave in private
+      // browsing." See PRIVACY.md.
+      incognito: 'not_allowed',
       icons: {
         16: 'icons/16.png',
         32: 'icons/32.png',
@@ -23,7 +27,8 @@ export default defineConfig({
         128: 'icons/128.png',
         512: 'icons/512.png',
       },
-      permissions: ['storage', 'alarms', 'contextMenus', 'activeTab'],
+      // contextMenus is requested at Stage 3 when the menu code lands.
+      permissions: ['storage', 'alarms', 'activeTab'],
       // host_permissions intentionally empty — see docs/PERMISSIONS.md.
       // Content script declares <all_urls> in content.ts entrypoint config.
       action: {
@@ -48,8 +53,7 @@ export default defineConfig({
         },
       },
       // Firefox MV3 cannot use background.service_worker — WXT handles this when
-      // the firefox build is invoked. Keep manifest_version explicit for clarity.
-      manifest_version: manifestVersion,
+      // the firefox build is invoked.
       minimum_chrome_version: !isFirefox ? '120' : undefined,
       browser_specific_settings: isFirefox
         ? {

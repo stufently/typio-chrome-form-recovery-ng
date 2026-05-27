@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Typio NG E2E fixture</title>
+  </head>
+  <body>
+    <h1>Form recovery fixture</h1>
+    <form id="contact" action="/submit">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" />
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" />
+
+      <label for="message">Message</label>
+      <textarea id="message" name="message" rows="6" cols="40"></textarea>
+
+      <!-- Sensitive fields: must NOT be saved -->
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" />
+
+      <label for="card">Card number</label>
+      <input type="text" id="card" name="card" autocomplete="cc-number" />
+    </form>
+  </body>
+</html>

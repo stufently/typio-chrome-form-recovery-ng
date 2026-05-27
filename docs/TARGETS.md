@@ -2,12 +2,12 @@
 
 ## v1 targets
 
-| Browser | Manifest | Background | Build command | Store |
-|---------|----------|------------|---------------|-------|
-| **Chrome** ≥ 120 | MV3 | `service_worker` (module) | `wxt build -b chrome` | [Chrome Web Store](https://chromewebstore.google.com/) |
-| **Edge** ≥ 120 | MV3 | `service_worker` (module) | `wxt build -b edge` (same as Chrome) | [Edge Add-ons](https://microsoftedge.microsoft.com/addons) |
-| **Opera** ≥ 106 | MV3 | `service_worker` (module) | `wxt build -b chrome` (Opera installs Chromium-format packages) | [Opera Add-ons](https://addons.opera.com/) (manual upload, no API) |
-| **Firefox** ≥ 121 | MV3 (forced) | `background.scripts` (Firefox MV3 does NOT support `service_worker`) | `wxt build -b firefox --mv3` | [Firefox AMO](https://addons.mozilla.org/) |
+| Browser           | Manifest     | Background                                                           | Build command                                                   | Store                                                              |
+| ----------------- | ------------ | -------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Chrome** ≥ 120  | MV3          | `service_worker` (module)                                            | `wxt build -b chrome`                                           | [Chrome Web Store](https://chromewebstore.google.com/)             |
+| **Edge** ≥ 120    | MV3          | `service_worker` (module)                                            | `wxt build -b edge` (same as Chrome)                            | [Edge Add-ons](https://microsoftedge.microsoft.com/addons)         |
+| **Opera** ≥ 106   | MV3          | `service_worker` (module)                                            | `wxt build -b chrome` (Opera installs Chromium-format packages) | [Opera Add-ons](https://addons.opera.com/) (manual upload, no API) |
+| **Firefox** ≥ 121 | MV3 (forced) | `background.scripts` (Firefox MV3 does NOT support `service_worker`) | `wxt build -b firefox --mv3`                                    | [Firefox AMO](https://addons.mozilla.org/)                         |
 
 ## Why these minimum versions
 
@@ -60,7 +60,7 @@ Firefox does NOT support `background.service_worker` as of 2026-05. WXT's `--mv3
 
 ## Acceptance criteria per target
 
-A release is *not* shipped until **all** of the following pass for **each** target browser:
+A release is _not_ shipped until **all** of the following pass for **each** target browser:
 
 - `wxt build -b <browser>` succeeds without warnings
 - `web-ext lint dist/<browser>/` returns zero errors (Firefox especially)
@@ -85,6 +85,7 @@ matrix:
 ```
 
 Each matrix cell runs lint + unit + Playwright smoke for that browser's build. Release tag also publishes via:
+
 - Chrome Web Store API v2 (`upload` + `publish`) — `chrome` build
 - `web-ext sign --channel listed` (AMO) — `firefox` build
 - Edge Partner Center API — `edge` build (same artefact as chrome)

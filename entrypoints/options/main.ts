@@ -35,9 +35,7 @@ export class TypioOptions extends LitElement {
   override render() {
     return html`
       <h1>Typio Chrome Form Recovery NG</h1>
-      <p class="note">
-        Options will land in Stage 3 — blocklist, retention period, import/export.
-      </p>
+      <p class="note">Options will land in Stage 3 — blocklist, retention period, import/export.</p>
     `;
   }
 }
