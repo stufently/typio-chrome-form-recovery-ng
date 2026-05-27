@@ -4,8 +4,8 @@
 IMAGE := typio-ng-build:local
 DOCKER_RUN := docker run --rm -v "$$PWD":/app -w /app $(IMAGE)
 
-.PHONY: help image install build build-chrome build-firefox build-edge \
-        zip lint format test test-coverage test-e2e clean shell
+.PHONY: help image install build build-chrome build-firefox build-edge build-opera \
+        zip icons lint format test test-coverage test-e2e clean shell
 
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | \
@@ -28,10 +28,18 @@ build-firefox: image ## Build Firefox MV3 artefact in .output/firefox-mv3/
 build-edge: image ## Build Edge MV3 artefact in .output/edge-mv3/
 	$(DOCKER_RUN) npm run build:edge
 
+build-opera: build-chrome ## Opera installs Chromium packages — reuse the Chrome build
+	@mkdir -p .output/opera
+	@cp -r .output/chrome-mv3/. .output/opera/
+	@echo "Opera package ready at .output/opera/"
+
 zip: image ## Produce store-ready zips for every target browser
 	$(DOCKER_RUN) npm run zip:chrome
 	$(DOCKER_RUN) npm run zip:firefox
 	$(DOCKER_RUN) npm run zip:edge
+
+icons: image ## Regenerate PNG icons from assets/icon-master.svg
+	$(DOCKER_RUN) npm run icons
 
 lint: image ## ESLint + tsc --noEmit + web-ext lint (Firefox build must exist)
 	$(DOCKER_RUN) npm run lint

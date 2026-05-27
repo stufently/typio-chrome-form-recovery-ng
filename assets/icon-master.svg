@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1e40af"/>
+    </linearGradient>
+  </defs>
+  <!--
+    Chrome recommends ~96px artwork on a 128px canvas, leaving ~16px of
+    transparent breathing room around the badge. We follow that ratio for the
+    512px master so all generated sizes have the same proportions.
+    Artwork lives in the 64..448 range (384x384 inside 512 canvas).
+  -->
+  <g transform="translate(64 64)">
+    <rect width="384" height="384" rx="72" fill="url(#bg)"/>
+    <g transform="translate(192 210)">
+      <!-- T glyph: bar + stem -->
+      <rect x="-105" y="-75" width="210" height="42" rx="11" fill="#ffffff"/>
+      <rect x="-24" y="-33" width="48" height="138" rx="11" fill="#ffffff"/>
+      <!-- Ground line evoking a text field -->
+      <rect x="-120" y="120" width="240" height="15" rx="8" fill="#ffffff" fill-opacity="0.55"/>
+    </g>
+  </g>
+</svg>

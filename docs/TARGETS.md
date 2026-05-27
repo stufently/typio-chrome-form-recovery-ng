@@ -88,5 +88,5 @@ Each matrix cell runs lint + unit + Playwright smoke for that browser's build. R
 
 - Chrome Web Store API v2 (`upload` + `publish`) — `chrome` build
 - `web-ext sign --channel listed` (AMO) — `firefox` build
-- Edge Partner Center API — `edge` build (same artefact as chrome)
-- Opera — manual upload, surfaced in release notes
+- Edge Add-ons Partner Center "Update REST API" — `edge` build (same artefact as chrome). First submission of a new add-on must go through the Partner Center UI; updates can be automated via the API.
+- Opera — Opera Add-ons does not expose a publish API; we upload manually and link the release notes.

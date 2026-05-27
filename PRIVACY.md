@@ -59,6 +59,17 @@ See [docs/PERMISSIONS.md](docs/PERMISSIONS.md) for the full list of browser perm
 
 The full source code is available at https://github.com/stufently/typio-chrome-form-recovery-ng under the MIT license. You can verify these claims by reading the code.
 
+## Limited Use disclosure (Chrome Web Store)
+
+In compliance with the [Chrome Web Store User Data Policy](https://developer.chrome.com/docs/webstore/program-policies/user-data/), this extension's use of any user data is limited as follows:
+
+- Data Typio NG observes (text typed into form fields) is used **only** to provide the auto-save and recovery functionality the user installed the extension for.
+- Data is **not** transferred to third parties.
+- Data is **not** used or transferred for purposes unrelated to the user-facing feature.
+- Data is **not** used or transferred to determine creditworthiness or for lending purposes.
+- Data is **not** sold.
+- The extension does **not** use remote code; no `eval`, no `Function()`, no remotely-hosted scripts.
+
 ## Contact
 
 Questions or concerns: open an issue at https://github.com/stufently/typio-chrome-form-recovery-ng/issues

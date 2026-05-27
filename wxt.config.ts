@@ -2,10 +2,19 @@ import { defineConfig } from 'wxt';
 
 // WXT config — cross-browser MV3 build matrix.
 // See docs/TARGETS.md for the full target matrix and per-browser deltas.
+//
+// Manifest version is taken from package.json by default; the release workflow
+// bumps package.json from the git tag before building so the manifest stays in
+// sync with the published artefact.
 
 export default defineConfig({
   srcDir: '.',
   outDir: '.output',
+  // Stable zip filenames so the release workflow can find them by path.
+  zip: {
+    artifactTemplate: '{{name}}-{{browser}}.zip',
+    sourcesTemplate: '{{name}}-sources.zip',
+  },
   manifest: ({ browser }) => {
     const isFirefox = browser === 'firefox';
 
