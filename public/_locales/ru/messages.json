@@ -1,0 +1,26 @@
+{
+  "extension_name": {
+    "message": "Typio Chrome Form Recovery NG",
+    "description": "Имя расширения. Не переводим — это бренд."
+  },
+  "extension_short_name": {
+    "message": "Typio NG",
+    "description": "Короткое имя."
+  },
+  "extension_description": {
+    "message": "Авто-сохранение текста из веб-форм. Без серверов, без аналитики, всё локально в браузере.",
+    "description": "Описание для магазина и менеджера расширений."
+  },
+  "action_title": {
+    "message": "Typio NG — восстановить набранный текст",
+    "description": "Подсказка на иконке тулбара."
+  },
+  "command_open_recovery": {
+    "message": "Открыть диалог восстановления на текущей странице",
+    "description": "Описание клавиатурного сокращения."
+  },
+  "context_menu_recover": {
+    "message": "Восстановить текст в это поле",
+    "description": "Пункт правого клика на редактируемых полях."
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "name": "typio-chrome-form-recovery-ng",
+  "version": "0.0.0",
+  "description": "Auto-save and recover text from web forms. MV3, cross-browser, privacy-first.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox --mv3",
+    "build": "wxt build",
+    "build:chrome": "wxt build -b chrome",
+    "build:firefox": "wxt build -b firefox --mv3",
+    "build:edge": "wxt build -b edge",
+    "zip": "wxt zip",
+    "zip:chrome": "wxt zip -b chrome",
+    "zip:firefox": "wxt zip -b firefox --mv3",
+    "zip:edge": "wxt zip -b edge",
+    "compile": "tsc --noEmit",
+    "lint": "eslint . --ext .ts,.tsx,.js,.mjs --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "lint:webext": "web-ext lint --source-dir=.output/firefox-mv3",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "idb": "^8.0.0",
+    "lit": "^3.2.0",
+    "webextension-polyfill": "^0.12.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/chrome": "^0.0.287",
+    "@types/node": "^22.10.0",
+    "@types/webextension-polyfill": "^0.12.1",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "@vitest/coverage-v8": "^2.1.8",
+    "@wxt-dev/i18n": "^0.2.0",
+    "eslint": "^9.16.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-lit": "^1.15.0",
+    "fake-indexeddb": "^6.0.0",
+    "happy-dom": "^15.11.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.8",
+    "web-ext": "^8.3.0",
+    "wxt": "^0.19.20"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

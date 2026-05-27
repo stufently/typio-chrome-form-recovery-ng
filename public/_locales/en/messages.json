@@ -1,0 +1,26 @@
+{
+  "extension_name": {
+    "message": "Typio Chrome Form Recovery NG",
+    "description": "Display name in browser stores and the extension manager."
+  },
+  "extension_short_name": {
+    "message": "Typio NG",
+    "description": "Short name shown when the full name does not fit."
+  },
+  "extension_description": {
+    "message": "Auto-save and recover text from web forms. Privacy-first, no servers, no telemetry.",
+    "description": "Listed in the extension manager and the store."
+  },
+  "action_title": {
+    "message": "Typio NG — recover form drafts",
+    "description": "Tooltip on the toolbar icon."
+  },
+  "command_open_recovery": {
+    "message": "Open the recovery dialog on the current page",
+    "description": "Keyboard shortcut description."
+  },
+  "context_menu_recover": {
+    "message": "Recover text in this field",
+    "description": "Right-click menu item shown on editable fields."
+  }
+}
