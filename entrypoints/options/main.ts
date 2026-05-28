@@ -1,13 +1,14 @@
 // Options page. Stage 3 — retention slider, blocklist editor, import/export.
 
 import { LitElement, html, css, nothing } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { state } from 'lit/decorators.js';
 import { sendMessage } from '../../lib/messaging';
 import type { ExportBundle, ImportSummary, Message, Settings } from '../../lib/types';
 import { MAX_IMPORT_BYTES, exportToBlob } from '../../lib/export-import';
 import { t } from '../../lib/i18n';
 
-@customElement('typio-options')
+const TAG = 'typio-options';
+
 export class TypioOptions extends LitElement {
   static override styles = css`
     :host {
@@ -302,4 +303,8 @@ export class TypioOptions extends LitElement {
       </section>
     `;
   }
+}
+
+if (!customElements.get(TAG)) {
+  customElements.define(TAG, TypioOptions);
 }

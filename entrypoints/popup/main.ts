@@ -3,13 +3,14 @@
 // per-entry delete, and copy.
 
 import { LitElement, html, css, nothing } from 'lit';
-import { customElement, state } from 'lit/decorators.js';
+import { state } from 'lit/decorators.js';
 import browser from 'webextension-polyfill';
 import { sendMessage, sendMessageToTab } from '../../lib/messaging';
 import { t } from '../../lib/i18n';
 import type { Entry, Message } from '../../lib/types';
 
-@customElement('typio-popup')
+const TAG = 'typio-popup';
+
 export class TypioPopup extends LitElement {
   static override styles = css`
     :host {
@@ -230,4 +231,8 @@ function formatTime(ts: number): string {
   if (diff < 3_600_000) return Math.floor(diff / 60_000) + 'm ago';
   if (diff < 86_400_000) return Math.floor(diff / 3_600_000) + 'h ago';
   return Math.floor(diff / 86_400_000) + 'd ago';
+}
+
+if (!customElements.get(TAG)) {
+  customElements.define(TAG, TypioPopup);
 }

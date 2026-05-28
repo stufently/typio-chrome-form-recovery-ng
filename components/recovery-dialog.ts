@@ -6,12 +6,17 @@
 // depend on extension globals — easier to test.
 
 import { LitElement, html, css, nothing } from 'lit';
-import { customElement, property, state } from 'lit/decorators.js';
+import { property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import type { Entry } from '../lib/types';
 import { t } from '../lib/i18n';
 
-@customElement('typio-recovery-dialog')
+// Idempotent registration. The `@customElement` decorator throws on a second
+// call against the same CustomElementRegistry — and WXT's zip pipeline imports
+// content.ts twice in vite-node which triggered exactly that. Manual define
+// with a presence check is the safe path.
+const TAG = 'typio-recovery-dialog';
+
 export class TypioRecoveryDialog extends LitElement {
   @property({ attribute: false }) entries: Entry[] = [];
   @property({ attribute: false }) onRestore?: (entry: Entry) => void;
@@ -200,6 +205,10 @@ export class TypioRecoveryDialog extends LitElement {
       </div>
     `;
   }
+}
+
+if (!customElements.get(TAG)) {
+  customElements.define(TAG, TypioRecoveryDialog);
 }
 
 function formatTime(ts: number): string {
