@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Typio NG — recovery dialog preview</title>
+    <style>
+      :root {
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+      html,
+      body {
+        margin: 0;
+      }
+      /* Replica of the in-page fixture so the dialog is overlaid on a realistic comment form. */
+      .site {
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 14px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .site .brand {
+        font-size: 17px;
+        font-weight: 700;
+      }
+      .site nav {
+        display: flex;
+        gap: 22px;
+        font-size: 14px;
+        color: #475569;
+      }
+      main {
+        max-width: 760px;
+        margin: 36px auto;
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        padding: 28px 36px 36px;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0 0 6px;
+      }
+      .lede {
+        color: #475569;
+        margin: 0 0 20px;
+        font-size: 14px;
+      }
+      .leave {
+        font-size: 18px;
+        margin: 8px 0 16px;
+        font-weight: 600;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: #475569;
+        margin-top: 14px;
+      }
+      input,
+      textarea {
+        margin-top: 4px;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 11px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font: inherit;
+      }
+      textarea {
+        font-family: ui-monospace, SFMono-Regular, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      /* Dialog — same CSS as components/recovery-dialog.ts */
+      .typio-host {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483647;
+        font:
+          14px/1.5 -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        color: #111;
+      }
+      .scrim {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+      }
+      .panel {
+        position: absolute;
+        top: 5vh;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(680px, 92vw);
+        max-height: 84vh;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .panel header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 18px;
+        border-bottom: 1px solid #eef2f7;
+      }
+      .panel header h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        flex: 1;
+      }
+      .panel header button {
+        background: transparent;
+        border: 0;
+        cursor: pointer;
+        font-size: 14px;
+        color: #475569;
+      }
+      .search {
+        padding: 12px 18px;
+        border-bottom: 1px solid #eef2f7;
+      }
+      .search input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font: inherit;
+      }
+      .list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px 0;
+      }
+      .item {
+        padding: 12px 18px;
+        border-bottom: 1px solid #f4f6fa;
+        cursor: pointer;
+      }
+      .item:hover {
+        background: #f8fafc;
+      }
+      .preview {
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 4.5em;
+        overflow: hidden;
+        mask-image: linear-gradient(to bottom, #000 70%, transparent);
+        -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+      }
+      .meta {
+        margin-top: 6px;
+        font-size: 12px;
+        color: #64748b;
+        display: flex;
+        gap: 10px;
+      }
+      .panel footer {
+        padding: 10px 18px;
+        border-top: 1px solid #eef2f7;
+        font-size: 12px;
+        color: #64748b;
+        display: flex;
+        justify-content: space-between;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site">
+      <div class="brand">ExampleBlog</div>
+      <nav><span>Home</span><span>Blog</span><span>About</span><span>Contact</span></nav>
+    </header>
+    <main>
+      <h1>Designing for focus in a noisy world</h1>
+      <p class="lede">Posted by Alex · 8 min read</p>
+      <p>
+        Real attention is a scarce thing. Every tool we use shapes the way we think. The hardest
+        part of writing well is keeping that first thread of thought intact long enough to put it on
+        the page.
+      </p>
+      <div class="leave">Leave a comment</div>
+      <label for="name">Name</label>
+      <input type="text" id="name" />
+      <label for="message">Your comment</label>
+      <textarea id="message" rows="6"></textarea>
+    </main>
+
+    <div class="typio-host">
+      <div class="scrim"></div>
+      <div class="panel" role="dialog" aria-modal="true">
+        <header>
+          <h2>Typio NG — recovery</h2>
+          <button type="button">Close</button>
+        </header>
+        <div class="search">
+          <input type="search" placeholder="Search drafts" />
+        </div>
+        <div class="list">
+          <div class="item">
+            <div class="preview">
+              Real attention is a scarce thing. Every tool I touch shapes the way I think, and the
+              hardest part of writing well is keeping the first thread of thought intact long enough
+              to put it on the page.
+            </div>
+            <div class="meta"><span>textarea</span><span>194 chars</span><span>just now</span></div>
+          </div>
+          <div class="item">
+            <div class="preview">
+              The morning routine sets the tone for everything that follows. Before emails, before
+              notifications, before the rush — a few quiet minutes to think, write, and plan can
+              make the whole day unfold differently.
+            </div>
+            <div class="meta">
+              <span>textarea</span><span>206 chars</span><span>10m ago</span>
+            </div>
+          </div>
+          <div class="item">
+            <div class="preview">
+              Great writing is not about having the perfect words. It is about saying something
+              real, in a way that connects. Clarity comes from editing. Impact comes from honesty.
+              The rest is just practice.
+            </div>
+            <div class="meta">
+              <span>textarea</span><span>193 chars</span><span>20m ago</span>
+            </div>
+          </div>
+        </div>
+        <footer>
+          <span>Stored locally · no telemetry</span>
+          <span>3 / 3</span>
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>

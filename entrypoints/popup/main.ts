@@ -127,16 +127,25 @@ export class TypioPopup extends LitElement {
 
   override async connectedCallback(): Promise<void> {
     super.connectedCallback();
-    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-    if (!tab?.url) {
-      this.loading = false;
-      return;
-    }
-    try {
-      this.host = new URL(tab.url).host;
-    } catch {
-      this.loading = false;
-      return;
+    // Host override via query string: ?host=example.com. Lets users bookmark a
+    // specific site's drafts (e.g. on a status page) and is also used by the
+    // store-screenshot pipeline to drive the popup from a controlled host.
+    const params = new URLSearchParams(window.location.search);
+    const hostOverride = params.get('host');
+    if (hostOverride) {
+      this.host = hostOverride;
+    } else {
+      const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.url) {
+        this.loading = false;
+        return;
+      }
+      try {
+        this.host = new URL(tab.url).host;
+      } catch {
+        this.loading = false;
+        return;
+      }
     }
     const msg: Message = { type: 'QUERY_ENTRIES', host: this.host, limit: 100 };
     const reply = await sendMessage(msg);

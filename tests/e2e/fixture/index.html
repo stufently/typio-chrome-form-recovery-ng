@@ -2,26 +2,162 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Typio NG E2E fixture</title>
+    <title>Typio NG E2E fixture · ExampleBlog</title>
+    <style>
+      :root {
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        color: #1a1a1a;
+      }
+      body {
+        margin: 0;
+        background: #f7f8fa;
+      }
+      header.site {
+        background: #fff;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 14px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      header.site .brand {
+        font-size: 17px;
+        font-weight: 700;
+      }
+      header.site nav {
+        display: flex;
+        gap: 22px;
+        font-size: 14px;
+        color: #475569;
+      }
+      main {
+        max-width: 760px;
+        margin: 36px auto;
+        background: #fff;
+        border-radius: 10px;
+        border: 1px solid #e5e7eb;
+        padding: 28px 36px 36px;
+      }
+      h1 {
+        font-size: 26px;
+        margin: 0 0 6px;
+      }
+      .lede {
+        color: #475569;
+        margin: 0 0 20px;
+        font-size: 14px;
+      }
+      .leave {
+        font-size: 18px;
+        margin: 8px 0 16px;
+        font-weight: 600;
+      }
+      label {
+        display: block;
+        font-size: 12px;
+        color: #475569;
+        margin-top: 14px;
+      }
+      input,
+      textarea {
+        margin-top: 4px;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 11px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font: inherit;
+        background: #fff;
+      }
+      textarea {
+        font-family: ui-monospace, SFMono-Regular, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      button.post {
+        margin-top: 18px;
+        background: #2563eb;
+        color: #fff;
+        border: 0;
+        padding: 10px 18px;
+        border-radius: 6px;
+        cursor: pointer;
+        font: inherit;
+      }
+      .row {
+        display: flex;
+        gap: 14px;
+      }
+      .row > * {
+        flex: 1;
+      }
+      .sens {
+        margin-top: 22px;
+        padding: 14px 16px;
+        background: #fefce8;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #92400e;
+      }
+    </style>
   </head>
   <body>
-    <h1>Form recovery fixture</h1>
-    <form id="contact" action="/submit">
-      <label for="name">Name</label>
-      <input type="text" id="name" name="name" />
+    <header class="site">
+      <div class="brand">ExampleBlog</div>
+      <nav><span>Home</span><span>Blog</span><span>About</span><span>Contact</span></nav>
+    </header>
+    <main>
+      <h1>Designing for focus in a noisy world</h1>
+      <p class="lede">Posted by Alex · 8 min read</p>
 
-      <label for="email">Email</label>
-      <input type="email" id="email" name="email" />
+      <p>
+        Real attention is a scarce thing. Every tool we use shapes the way we think. The hardest
+        part of writing well is keeping that first thread of thought intact long enough to put it
+        on the page.
+      </p>
 
-      <label for="message">Message</label>
-      <textarea id="message" name="message" rows="6" cols="40"></textarea>
+      <div class="leave">Leave a comment</div>
+      <form id="contact" action="/comments">
+        <div class="row">
+          <div>
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" />
+          </div>
+          <div>
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" />
+          </div>
+        </div>
+        <label for="website">Website</label>
+        <input type="url" id="website" name="website" />
 
-      <!-- Sensitive fields: must NOT be saved -->
-      <label for="password">Password</label>
-      <input type="password" id="password" name="password" />
+        <label for="message">Your comment</label>
+        <textarea id="message" name="message" rows="8" cols="40"></textarea>
 
-      <label for="card">Card number</label>
-      <input type="text" id="card" name="card" autocomplete="cc-number" />
-    </form>
+        <button type="button" class="post">Post Comment</button>
+      </form>
+
+      <div class="sens">
+        Sensitive fields below are present on purpose — Typio NG must refuse to save these.
+      </div>
+
+      <form id="sensitive" action="/login" style="margin-top: 14px;">
+        <div class="row">
+          <div>
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" />
+          </div>
+          <div>
+            <label for="card">Card number</label>
+            <input type="text" id="card" name="card" autocomplete="cc-number" />
+          </div>
+        </div>
+      </form>
+    </main>
   </body>
 </html>

@@ -32,6 +32,7 @@ export default defineContentScript({
   runAt: 'document_idle',
   allFrames: false,
   async main() {
+    console.log('[typio-ng] content script main() running at', location.href);
     if (isRestrictedLocation(location)) return;
 
     let settings: Settings = await getSettings();
