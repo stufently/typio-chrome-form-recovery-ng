@@ -79,13 +79,22 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artefacts
+          pattern: '*-mv3'
+          merge-multiple: true
 
       - name: Compose Opera package (chrome-format zip)
         run: |
           set -euxo pipefail
+          echo "=== artefacts tree ==="
+          find artefacts -type f | sort
           mkdir -p artefacts/opera
           CHROME_ZIP="$(find artefacts -type f -name '*-chrome.zip' | head -1)"
+          if [ -z "$CHROME_ZIP" ]; then
+            echo "ERROR: chrome zip not found in artefacts"
+            exit 1
+          fi
           cp "$CHROME_ZIP" artefacts/opera/typio-chrome-form-recovery-ng-opera.zip
+          echo "=== final zip list ==="
           find artefacts -type f -name '*.zip'
 
       - name: Upload assets to GitHub release
