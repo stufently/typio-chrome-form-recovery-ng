@@ -24,7 +24,8 @@ export default defineConfig({
       description:
         'Auto-save and recover text from web forms. Privacy-first, no servers, no telemetry. Typio-style form autosave and recovery.',
       default_locale: 'en',
-      version: '0.0.0',
+      // version is sourced from package.json by WXT; the release workflow
+      // bumps package.json from the git tag before each build.
       // Disable in incognito by default. The user can re-enable per browser
       // policy, but our default privacy stance is "do not autosave in private
       // browsing." See PRIVACY.md.

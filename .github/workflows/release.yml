@@ -19,6 +19,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   build:
@@ -61,10 +62,23 @@ jobs:
       - name: Zip
         run: npm run zip:${{ matrix.browser }}
 
+      - name: Stage release artefact (non-hidden so upload-artifact picks it up)
+        run: |
+          set -euxo pipefail
+          mkdir -p release-artifact
+          ZIP="$(find .output -maxdepth 1 -type f -name "*-${{ matrix.browser }}.zip" -print -quit)"
+          test -n "$ZIP" && test -s "$ZIP"
+          cp "$ZIP" release-artifact/
+          if [ -f .output/typio-chrome-form-recovery-ng-sources.zip ]; then
+            cp .output/typio-chrome-form-recovery-ng-sources.zip release-artifact/
+          fi
+          ls -la release-artifact/
+
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.browser }}-mv3
-          path: .output
+          path: release-artifact/
+          if-no-files-found: error
           retention-days: 14
 
   release:
@@ -87,15 +101,12 @@ jobs:
           set -euxo pipefail
           echo "=== artefacts tree ==="
           find artefacts -type f | sort
+          CHROME_ZIP="$(find artefacts -type f -name '*-chrome.zip' -print -quit)"
+          test -n "$CHROME_ZIP" && test -s "$CHROME_ZIP"
           mkdir -p artefacts/opera
-          CHROME_ZIP="$(find artefacts -type f -name '*-chrome.zip' | head -1)"
-          if [ -z "$CHROME_ZIP" ]; then
-            echo "ERROR: chrome zip not found in artefacts"
-            exit 1
-          fi
           cp "$CHROME_ZIP" artefacts/opera/typio-chrome-form-recovery-ng-opera.zip
           echo "=== final zip list ==="
-          find artefacts -type f -name '*.zip'
+          find artefacts -type f -name '*.zip' | sort
 
       - name: Upload assets to GitHub release
         env:
