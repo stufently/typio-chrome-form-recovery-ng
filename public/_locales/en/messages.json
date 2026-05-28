@@ -33,6 +33,25 @@
   "popup_restore_failed": {
     "message": "Could not restore — the field is no longer on the page. Try the recovery dialog."
   },
+  "popup_footer_privacy": { "message": "Stored locally · no telemetry" },
+  "popup_link_github": { "message": "GitHub" },
+
+  "time_just_now": { "message": "just now" },
+  "time_minutes_ago": {
+    "message": "$N$m ago",
+    "description": "Short relative time, e.g. '5m ago' for 5 minutes ago.",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "time_hours_ago": {
+    "message": "$N$h ago",
+    "description": "Short relative time, e.g. '3h ago' for 3 hours ago.",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "time_days_ago": {
+    "message": "$N$d ago",
+    "description": "Short relative time, e.g. '2d ago' for 2 days ago.",
+    "placeholders": { "n": { "content": "$1" } }
+  },
 
   "options_title": { "message": "Typio Chrome Form Recovery NG — Options" },
   "options_retention": { "message": "Keep drafts for" },
@@ -48,7 +67,31 @@
   "options_import": { "message": "Import data (JSON)" },
   "options_import_dry_run": { "message": "Validate (dry run)" },
   "options_import_apply": { "message": "Apply" },
+  "options_save": { "message": "Save" },
   "options_saved": { "message": "Saved." },
+  "options_import_summary": {
+    "message": "Insert: $INSERT$, skip duplicates: $DUP$, invalid: $INVALID$. Settings overwrite: $OVERWRITE$.",
+    "placeholders": {
+      "insert": { "content": "$1" },
+      "dup": { "content": "$2" },
+      "invalid": { "content": "$3" },
+      "overwrite": { "content": "$4" }
+    }
+  },
+  "options_import_error": {
+    "message": "Cannot import: $REASON$",
+    "placeholders": { "reason": { "content": "$1" } }
+  },
+  "options_import_too_large": {
+    "message": "file too large ($SIZE$ bytes, max $MAX$)",
+    "placeholders": { "size": { "content": "$1" }, "max": { "content": "$2" } }
+  },
+  "options_import_invalid_json": {
+    "message": "invalid JSON: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+  "yes": { "message": "yes" },
+  "no": { "message": "no" },
 
   "recovery_title": { "message": "Typio NG — recovery" },
   "recovery_search": { "message": "Search drafts" },

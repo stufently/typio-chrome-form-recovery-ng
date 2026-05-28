@@ -6,7 +6,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { state } from 'lit/decorators.js';
 import browser from 'webextension-polyfill';
 import { sendMessage, sendMessageToTab } from '../../lib/messaging';
-import { t } from '../../lib/i18n';
+import { t, formatRelativeTime } from '../../lib/i18n';
 import type { Entry, Message } from '../../lib/types';
 
 const TAG = 'typio-popup';
@@ -176,7 +176,7 @@ export class TypioPopup extends LitElement {
     if (reply.ok) {
       window.close();
     } else {
-      this.restoreError = reply.error || 'Could not restore — the field is no longer on the page.';
+      this.restoreError = reply.error || t('popup_restore_failed');
     }
   }
 
@@ -187,12 +187,9 @@ export class TypioPopup extends LitElement {
         <span class="host">${this.host || nothing}</span>
       </header>
       ${this.loading
-        ? html`<div class="empty">Loading…</div>`
+        ? html`<div class="empty">${t('popup_loading')}</div>`
         : this.entries.length === 0
-          ? html`<div class="empty">
-              No saved drafts for this site yet. Start typing in any text field — Typio NG will
-              autosave after a short pause.
-            </div>`
+          ? html`<div class="empty">${t('popup_empty')}</div>`
           : html`<ul>
               ${this.entries.map(
                 (e) => html`
@@ -201,7 +198,7 @@ export class TypioPopup extends LitElement {
                     <div class="meta">
                       <span>${e.type}</span>
                       <span>${e.valueLen} chars</span>
-                      <span>${formatTime(e.updatedAt)}</span>
+                      <span>${formatRelativeTime(e.updatedAt)}</span>
                     </div>
                   </li>
                 `,
@@ -213,24 +210,16 @@ export class TypioPopup extends LitElement {
         <button class="secondary" @click=${this.openOptions}>${t('popup_open_options')}</button>
       </div>
       <footer>
-        <span>Stored locally · no telemetry</span>
+        <span>${t('popup_footer_privacy')}</span>
         <a
           href="https://github.com/stufently/typio-chrome-form-recovery-ng"
           target="_blank"
           rel="noopener"
-          >GitHub</a
+          >${t('popup_link_github')}</a
         >
       </footer>
     `;
   }
-}
-
-function formatTime(ts: number): string {
-  const diff = Date.now() - ts;
-  if (diff < 60_000) return 'just now';
-  if (diff < 3_600_000) return Math.floor(diff / 60_000) + 'm ago';
-  if (diff < 86_400_000) return Math.floor(diff / 3_600_000) + 'h ago';
-  return Math.floor(diff / 86_400_000) + 'd ago';
 }
 
 if (!customElements.get(TAG)) {

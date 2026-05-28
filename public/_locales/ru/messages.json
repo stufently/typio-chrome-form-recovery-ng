@@ -22,6 +22,22 @@
   "popup_restore_failed": {
     "message": "Не удалось восстановить — поле больше не на странице. Попробуйте диалог восстановления."
   },
+  "popup_footer_privacy": { "message": "Локально · без аналитики" },
+  "popup_link_github": { "message": "GitHub" },
+
+  "time_just_now": { "message": "только что" },
+  "time_minutes_ago": {
+    "message": "$N$ мин назад",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "time_hours_ago": {
+    "message": "$N$ ч назад",
+    "placeholders": { "n": { "content": "$1" } }
+  },
+  "time_days_ago": {
+    "message": "$N$ дн назад",
+    "placeholders": { "n": { "content": "$1" } }
+  },
 
   "options_title": { "message": "Typio Chrome Form Recovery NG — настройки" },
   "options_retention": { "message": "Хранить черновики" },
@@ -37,7 +53,31 @@
   "options_import": { "message": "Импорт данных (JSON)" },
   "options_import_dry_run": { "message": "Проверить (dry run)" },
   "options_import_apply": { "message": "Применить" },
+  "options_save": { "message": "Сохранить" },
   "options_saved": { "message": "Сохранено." },
+  "options_import_summary": {
+    "message": "Добавить: $INSERT$, пропустить дубли: $DUP$, невалидных: $INVALID$. Перезаписать настройки: $OVERWRITE$.",
+    "placeholders": {
+      "insert": { "content": "$1" },
+      "dup": { "content": "$2" },
+      "invalid": { "content": "$3" },
+      "overwrite": { "content": "$4" }
+    }
+  },
+  "options_import_error": {
+    "message": "Импорт невозможен: $REASON$",
+    "placeholders": { "reason": { "content": "$1" } }
+  },
+  "options_import_too_large": {
+    "message": "файл слишком большой ($SIZE$ байт, максимум $MAX$)",
+    "placeholders": { "size": { "content": "$1" }, "max": { "content": "$2" } }
+  },
+  "options_import_invalid_json": {
+    "message": "невалидный JSON: $ERR$",
+    "placeholders": { "err": { "content": "$1" } }
+  },
+  "yes": { "message": "да" },
+  "no": { "message": "нет" },
 
   "recovery_title": { "message": "Typio NG — восстановление" },
   "recovery_search": { "message": "Искать в черновиках" },

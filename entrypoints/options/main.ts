@@ -170,7 +170,7 @@ export class TypioOptions extends LitElement {
     if (file.size > MAX_IMPORT_BYTES) {
       this.importSummary = {
         ok: false,
-        reason: `file too large (${file.size} bytes, max ${MAX_IMPORT_BYTES})`,
+        reason: t('options_import_too_large', [String(file.size), String(MAX_IMPORT_BYTES)]),
         entries: { willInsert: 0, willSkipDuplicate: 0, invalid: 0 },
         settings: { willOverwrite: false },
       };
@@ -183,7 +183,10 @@ export class TypioOptions extends LitElement {
     } catch (err) {
       this.importSummary = {
         ok: false,
-        reason: 'invalid JSON: ' + (err instanceof Error ? err.message : 'parse error'),
+        reason: t(
+          'options_import_invalid_json',
+          err instanceof Error ? err.message : 'parse error',
+        ),
         entries: { willInsert: 0, willSkipDuplicate: 0, invalid: 0 },
         settings: { willOverwrite: false },
       };
@@ -247,7 +250,7 @@ export class TypioOptions extends LitElement {
           />
         </label>
         <div class="row">
-          <button @click=${this.save}>Save</button>
+          <button @click=${this.save}>${t('options_save')}</button>
           ${justSaved ? html`<span class="saved">${t('options_saved')}</span>` : nothing}
         </div>
       </section>
@@ -261,7 +264,7 @@ export class TypioOptions extends LitElement {
         ></textarea>
         <div class="help">${t('options_blocklist_help')}</div>
         <div class="row" style="margin-top:10px;">
-          <button @click=${this.save}>Save</button>
+          <button @click=${this.save}>${t('options_save')}</button>
           ${justSaved ? html`<span class="saved">${t('options_saved')}</span>` : nothing}
         </div>
       </section>
@@ -287,11 +290,13 @@ export class TypioOptions extends LitElement {
           ? html`
               <div class="summary ${this.importSummary.ok ? '' : 'error'}">
                 ${this.importSummary.ok
-                  ? html`Insert: ${this.importSummary.entries.willInsert}, skip duplicates:
-                    ${this.importSummary.entries.willSkipDuplicate}, invalid:
-                    ${this.importSummary.entries.invalid}. Settings overwrite:
-                    ${this.importSummary.settings.willOverwrite ? 'yes' : 'no'}.`
-                  : html`Cannot import: ${this.importSummary.reason}`}
+                  ? t('options_import_summary', [
+                      String(this.importSummary.entries.willInsert),
+                      String(this.importSummary.entries.willSkipDuplicate),
+                      String(this.importSummary.entries.invalid),
+                      this.importSummary.settings.willOverwrite ? t('yes') : t('no'),
+                    ])
+                  : t('options_import_error', this.importSummary.reason ?? '')}
               </div>
               ${this.importSummary.ok
                 ? html`<div class="row" style="margin-top:10px;">

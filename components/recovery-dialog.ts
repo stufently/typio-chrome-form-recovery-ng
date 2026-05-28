@@ -9,7 +9,7 @@ import { LitElement, html, css, nothing } from 'lit';
 import { property, state } from 'lit/decorators.js';
 import { repeat } from 'lit/directives/repeat.js';
 import type { Entry } from '../lib/types';
-import { t } from '../lib/i18n';
+import { t, formatRelativeTime } from '../lib/i18n';
 
 // Idempotent registration. The `@customElement` decorator throws on a second
 // call against the same CustomElementRegistry — and WXT's zip pipeline imports
@@ -191,14 +191,14 @@ export class TypioRecoveryDialog extends LitElement {
                     <div class="meta">
                       <span>${e.type}</span>
                       <span>${e.valueLen} chars</span>
-                      <span>${formatTime(e.updatedAt)}</span>
+                      <span>${formatRelativeTime(e.updatedAt)}</span>
                     </div>
                   </div>
                 `,
               )}
         </div>
         <footer>
-          <span>Stored locally · no telemetry</span>
+          <span>${t('popup_footer_privacy')}</span>
           <span>${items.length} / ${this.entries.length}</span>
         </footer>
         ${nothing}
@@ -209,12 +209,4 @@ export class TypioRecoveryDialog extends LitElement {
 
 if (!customElements.get(TAG)) {
   customElements.define(TAG, TypioRecoveryDialog);
-}
-
-function formatTime(ts: number): string {
-  const diff = Date.now() - ts;
-  if (diff < 60_000) return 'just now';
-  if (diff < 3_600_000) return Math.floor(diff / 60_000) + 'm ago';
-  if (diff < 86_400_000) return Math.floor(diff / 3_600_000) + 'h ago';
-  return Math.floor(diff / 86_400_000) + 'd ago';
 }
