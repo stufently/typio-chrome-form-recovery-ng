@@ -23,7 +23,7 @@ import type { AddressInfo } from 'node:net';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const EXT_DIR = path.resolve(__dirname, '../../.output/chrome-mv3');
-const fixtureUrl_DIR = path.join(__dirname, 'fixture');
+const FIXTURE_DIR = path.join(__dirname, 'fixture');
 const OUT_DIR = path.resolve(__dirname, '../../store-assets/screenshots');
 
 // Content scripts only inject into http(s):// pages by default — file:// requires
@@ -34,7 +34,7 @@ function startFixtureServer(): Promise<{ url: string; close: () => Promise<void>
     const server = http.createServer((req, res) => {
       const rel = (req.url || '/').split('?')[0] || '/';
       const target =
-        rel === '/' ? path.join(fixtureUrl_DIR, 'index.html') : path.join(fixtureUrl_DIR, rel);
+        rel === '/' ? path.join(FIXTURE_DIR, 'index.html') : path.join(FIXTURE_DIR, rel);
       fs.readFile(target, (err, data) => {
         if (err) {
           res.statusCode = 404;
@@ -147,10 +147,7 @@ test.describe('Store screenshots', () => {
                 host,
                 pathname: '/blog/designing-for-focus',
                 fieldKey:
-                  'o=http://' +
-                  host +
-                  '|p=/blog/designing-for-focus|n=message|i=message|ord=' +
-                  i,
+                  'o=http://' + host + '|p=/blog/designing-for-focus|n=message|i=message|ord=' + i,
                 value,
                 type: 'textarea',
                 valueLen: value.length,
