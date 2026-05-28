@@ -86,8 +86,9 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p artefacts/opera
-          cp artefacts/chrome-mv3/*.zip artefacts/opera/
-          ls -la artefacts/chrome-mv3 artefacts/firefox-mv3 artefacts/edge-mv3 artefacts/opera
+          CHROME_ZIP="$(find artefacts -type f -name '*-chrome.zip' | head -1)"
+          cp "$CHROME_ZIP" artefacts/opera/typio-chrome-form-recovery-ng-opera.zip
+          find artefacts -type f -name '*.zip'
 
       - name: Upload assets to GitHub release
         env:
@@ -97,11 +98,8 @@ jobs:
           TAG="${{ inputs.tag || github.ref_name }}"
           gh release view "$TAG" >/dev/null 2>&1 \
             || gh release create "$TAG" --title "$TAG" --generate-notes --verify-tag
-          gh release upload "$TAG" --clobber \
-            artefacts/chrome-mv3/*.zip \
-            artefacts/firefox-mv3/*.zip \
-            artefacts/edge-mv3/*.zip \
-            artefacts/opera/*.zip
+          mapfile -t ZIPS < <(find artefacts -type f -name '*.zip' | sort -u)
+          gh release upload "$TAG" --clobber "${ZIPS[@]}"
 
   publish-chrome:
     name: Publish to Chrome Web Store
