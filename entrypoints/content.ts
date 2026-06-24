@@ -15,15 +15,11 @@ import { isRestrictedLocation } from '../lib/restricted-pages';
 import { sendMessage } from '../lib/messaging';
 import { getSettings } from '../lib/settings';
 import type { Entry, Message, RestoreEntryPayload, Settings } from '../lib/types';
-import { TypioRecoveryDialog } from '../components/recovery-dialog';
+import { renderRecoveryDialog, type RecoveryDialogHandle } from '../components/recovery-dialog';
 
 const DEBOUNCE_MS = 750;
 const MIN_VALUE_LEN = 2;
 const DIALOG_HOST_ID = '__typio-ng-recovery-host__';
-
-// Pull the import so the bundler keeps the @customElement('typio-recovery-dialog')
-// side-effect — without this the class can be tree-shaken from the content build.
-void TypioRecoveryDialog;
 
 type Editable = HTMLInputElement | HTMLTextAreaElement;
 
@@ -212,33 +208,44 @@ export default defineContentScript({
       mountDialog(entries);
     }
 
+    let dialogHandle: RecoveryDialogHandle | null = null;
+
     function mountDialog(entries: Entry[]): void {
       removeDialog();
       const host = document.createElement('div');
       host.id = DIALOG_HOST_ID;
-      host.style.cssText = 'all: initial;';
+      // `all: initial` walls off inherited page styles. The positioning must be
+      // re-applied inline AFTER the reset: it lives on the wrapper host itself
+      // now (the dialog is plain DOM in the shadow root, not a nested custom
+      // element), and inline styles override the shadow stylesheet's `:host`
+      // rule — without this the overlay would render static in normal flow.
+      host.style.cssText =
+        'all: initial; position: fixed; inset: 0; z-index: 2147483647; display: block;';
       // Closed shadow root — `open` would let page JS read recovered text via
       // host.shadowRoot.textContent. Removing the host node disposes it.
       const shadow = host.attachShadow({ mode: 'closed' });
-      const dialog = document.createElement('typio-recovery-dialog') as TypioRecoveryDialog;
-      dialog.entries = entries;
-      dialog.onRestore = (entry) => {
-        if (entry.id !== undefined) {
-          const ok = restoreByFieldKey({
-            entryId: entry.id,
-            fieldKey: entry.fieldKey,
-            value: entry.value,
-          });
-          if (!ok) restoreIntoLastFocused(entry.value);
-        }
-        removeDialog();
-      };
-      dialog.onClose = () => removeDialog();
-      shadow.appendChild(dialog);
+      // Attach to the document before rendering so the search box can take focus.
       document.documentElement.appendChild(host);
+      dialogHandle = renderRecoveryDialog(shadow, {
+        entries,
+        onRestore: (entry) => {
+          if (entry.id !== undefined) {
+            const ok = restoreByFieldKey({
+              entryId: entry.id,
+              fieldKey: entry.fieldKey,
+              value: entry.value,
+            });
+            if (!ok) restoreIntoLastFocused(entry.value);
+          }
+          removeDialog();
+        },
+        onClose: () => removeDialog(),
+      });
     }
 
     function removeDialog(): void {
+      dialogHandle?.dispose();
+      dialogHandle = null;
       const existing = document.getElementById(DIALOG_HOST_ID);
       existing?.remove();
     }

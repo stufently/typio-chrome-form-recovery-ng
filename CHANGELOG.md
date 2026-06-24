@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed — content script crash disabled all autosave (2026-06-24)
+
+- **Critical: the core autosave feature never ran.** `components/recovery-dialog.ts`
+  was a Lit custom element whose module-level `customElements.get(...)`/`define(...)`
+  executed at content-script import time. In a content script's _isolated world_
+  Chromium exposes `window.customElements` as `null`, so that call threw and the
+  entire content script crashed on startup ("The content script crashed on
+  startup!"). Input listeners were never attached → nothing was ever saved → the
+  in-page recovery dialog never opened. This is why the Chrome Web Store flagged
+  the item "Inaccurate Description — Non functional" and removed it: the described
+  "auto-saves text … and lets you recover it after a reload" did not work.
+- Rewrote the recovery dialog as **plain DOM** (`renderRecoveryDialog`) rendered
+  into the same closed Shadow DOM. No `customElements`, no Lit, in the content
+  script — Lit stays only in the extension pages (popup/options), where it works.
+  User text is assigned via `textContent` only (no `innerHTML`), preserving the
+  no-markup-injection guarantee.
+- Hardened the E2E smoke test: it now serves the fixture over **HTTP** (the old
+  `file://` fixture had an empty `location.host`, so the service worker dropped
+  every save and the test stayed green while the product was broken) and waits
+  for the content script to attach before typing. Verified end-to-end in real
+  Chromium: type → reload → recover via popup, and the in-page recovery dialog
+  renders without error.
+
 ### Added — Stage 2 (safety + storage hardening, 2026-05-27)
 
 - `lib/sensitive.ts` — seven-layer field check: type, autocomplete (token-list aware), name-like regex across `name`/`id`/`aria-label`/`aria-labelledby` (resolved)/`placeholder`/linked-`<label>`/wrapping-`<label>`/`class`/`data-*`, `pattern` attribute red flags, `inputmode` + short `maxlength`, URL category (page + form action). 22 name patterns including `card`, `cvv`, `pin`, `otp`, `mfa`, `totp`, `verification_code`, `auth_code`, `recovery_code`, `backup_code`, `cardholder`, `iban`, `routing/account number`, `sort_code`. Patterns tolerate space / dash / underscore separators.

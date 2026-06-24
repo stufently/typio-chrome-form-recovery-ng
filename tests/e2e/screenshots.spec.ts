@@ -244,9 +244,9 @@ test.describe('Store screenshots', () => {
     // Sideloaded extensions in Chrome 131+ require per-site user grant before
     // content_scripts auto-inject, which we cannot simulate from Playwright.
     // The dialog renders here from a standalone HTML preview that mirrors the
-    // exact CSS, DOM, and copy of `components/recovery-dialog.ts`. The dialog
-    // markup is kept in lockstep with the component — when you touch the Lit
-    // component, also update tests/e2e/fixture/dialog-preview.html.
+    // exact CSS, DOM, and copy of `components/recovery-dialog.ts` (plain-DOM
+    // renderer; `RECOVERY_DIALOG_CSS`). The markup is kept in lockstep with the
+    // renderer — when you touch it, also update tests/e2e/fixture/dialog-preview.html.
     const page = await context.newPage();
     await page.setViewportSize(VIEWPORT);
     await page.goto(fixtureUrl + 'dialog-preview.html');
