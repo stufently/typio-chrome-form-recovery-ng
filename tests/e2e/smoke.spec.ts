@@ -123,23 +123,26 @@ test.describe('Typio NG smoke', () => {
     // RESTORE_ENTRY message the content script handles — exercising
     // restoreByFieldKey + applyValue — by broadcasting from the service worker.
     const sw = context.serviceWorkers()[0]!;
-    const restored = await sw.evaluate(async (e: { id?: number; fieldKey: string; value: string }) => {
-      const tabs = await chrome.tabs.query({});
-      let ok = false;
-      for (const tab of tabs) {
-        if (tab.id === undefined) continue;
-        try {
-          const r = (await chrome.tabs.sendMessage(tab.id, {
-            type: 'RESTORE_ENTRY',
-            payload: { entryId: e.id, fieldKey: e.fieldKey, value: e.value },
-          })) as { ok?: boolean };
-          if (r?.ok) ok = true;
-        } catch {
-          // tab has no content script (extension pages) — ignore
+    const restored = await sw.evaluate(
+      async (e: { id?: number; fieldKey: string; value: string }) => {
+        const tabs = await chrome.tabs.query({});
+        let ok = false;
+        for (const tab of tabs) {
+          if (tab.id === undefined) continue;
+          try {
+            const r = (await chrome.tabs.sendMessage(tab.id, {
+              type: 'RESTORE_ENTRY',
+              payload: { entryId: e.id, fieldKey: e.fieldKey, value: e.value },
+            })) as { ok?: boolean };
+            if (r?.ok) ok = true;
+          } catch {
+            // tab has no content script (extension pages) — ignore
+          }
         }
-      }
-      return ok;
-    }, entry);
+        return ok;
+      },
+      entry,
+    );
     expect(restored, 'a content script accepted RESTORE_ENTRY').toBe(true);
     await expect(page.locator('#message')).toHaveValue(draft);
     await page.close();
