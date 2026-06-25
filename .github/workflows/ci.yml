@@ -85,7 +85,7 @@ jobs:
         run: npm run build:chrome
 
       - name: E2E tests
-        run: npm run test:e2e
+        run: xvfb-run --auto-servernum npm run test:e2e
 
       - uses: actions/upload-artifact@v7
         if: failure()
