@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   putEntry,
+  importEntries,
   queryByHost,
   queryByFieldKey,
   deleteEntry,
@@ -10,6 +11,7 @@ import {
   resetDbForTests,
   upsertFieldMeta,
   getFieldMeta,
+  pruneFieldMetaOlderThan,
 } from '../../lib/db';
 
 const baseEntry = {
@@ -227,5 +229,98 @@ describe('db.fields — metadata', () => {
     const got = await getFieldMeta('k1');
     expect(got?.host).toBe('b.com');
     expect(got?.lastSeen).toBe(2);
+  });
+});
+
+describe('db — 2026-07-10 review fixes', () => {
+  beforeEach(async () => {
+    await freshDb();
+  });
+
+  it('queryByHost filters by origin when provided', async () => {
+    await putEntry({
+      ...baseEntry,
+      origin: 'https://example.com',
+      textHash: 'h1',
+      value: 'https draft',
+    });
+    await putEntry({
+      ...baseEntry,
+      origin: 'http://example.com',
+      fieldKey: 'k2',
+      textHash: 'h2',
+      value: 'http draft',
+    });
+    const httpsOnly = await queryByHost('example.com', { origin: 'https://example.com' });
+    expect(httpsOnly.map((e) => e.value)).toEqual(['https draft']);
+    const all = await queryByHost('example.com');
+    expect(all.length).toBe(2);
+  });
+
+  it('derives origin from the fieldKey for legacy rows without origin', async () => {
+    await putEntry({
+      ...baseEntry,
+      fieldKey: 'o=https://example.com|p=/page|n=q',
+      textHash: 'h3',
+      value: 'legacy https draft',
+    });
+    const viaOrigin = await queryByHost('example.com', { origin: 'https://example.com' });
+    expect(viaOrigin.map((e) => e.value)).toEqual(['legacy https draft']);
+    const other = await queryByHost('example.com', { origin: 'http://example.com' });
+    expect(other).toEqual([]);
+  });
+
+  it('deleteByHost also removes field metadata for that host', async () => {
+    await putEntry(baseEntry);
+    await upsertFieldMeta({ fieldKey: 'k1', host: 'example.com', lastSeen: Date.now(), hints: {} });
+    await upsertFieldMeta({ fieldKey: 'k9', host: 'other.com', lastSeen: Date.now(), hints: {} });
+    await deleteByHost('example.com');
+    expect(await getFieldMeta('k1')).toBeUndefined();
+    expect(await getFieldMeta('k9')).toBeDefined();
+  });
+
+  it('pruneFieldMetaOlderThan drops stale metadata only', async () => {
+    const now = Date.now();
+    await upsertFieldMeta({ fieldKey: 'old', host: 'a.com', lastSeen: now - 100_000, hints: {} });
+    await upsertFieldMeta({ fieldKey: 'new', host: 'a.com', lastSeen: now, hints: {} });
+    const deleted = await pruneFieldMetaOlderThan(now - 50_000);
+    expect(deleted).toBe(1);
+    expect(await getFieldMeta('old')).toBeUndefined();
+    expect(await getFieldMeta('new')).toBeDefined();
+  });
+
+  it('queryByFieldKey filters by origin when provided', async () => {
+    await putEntry({
+      ...baseEntry,
+      origin: 'https://example.com',
+      fieldKey: 'k1',
+      textHash: 'h1',
+      value: 'https draft',
+    });
+    await putEntry({
+      ...baseEntry,
+      origin: 'http://example.com',
+      fieldKey: 'k1',
+      textHash: 'h2',
+      value: 'http draft',
+    });
+    const httpsOnly = await queryByFieldKey('example.com', 'k1', { origin: 'https://example.com' });
+    expect(httpsOnly.map((e) => e.value)).toEqual(['https draft']);
+    const all = await queryByFieldKey('example.com', 'k1');
+    expect(all.length).toBe(2);
+  });
+
+  it('importEntries batches inserts and correctly trims at the end', async () => {
+    await importEntries(
+      [
+        { ...baseEntry, fieldKey: 'k1', value: 'val1', textHash: 'h1' },
+        { ...baseEntry, fieldKey: 'k1', value: 'val2', textHash: 'h2' },
+        { ...baseEntry, fieldKey: 'k1', value: 'val3', textHash: 'h3' },
+      ],
+      { maxPerField: 2, maxPerHost: 10 },
+    );
+    const k1Entries = await queryByFieldKey('example.com', 'k1');
+    expect(k1Entries.map((e) => e.value).sort()).toEqual(['val2', 'val3']);
+    expect(await countEntries()).toBe(2);
   });
 });

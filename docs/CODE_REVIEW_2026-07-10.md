@@ -4,6 +4,22 @@ Reviewers: Claude (full source read), Codex (ran lint/tsc/tests — all green),
 Antigravity. Every finding below was re-verified against the code; false
 positives from the reviewers were dropped. Ordered by severity.
 
+## Resolution (2026-07-10, v1.0.2)
+
+All findings below were fixed the same day, except: finding 9 was kept as
+intended behavior (recovering just-deleted text is the product's purpose —
+documented in `entrypoints/content.ts`), and the extra URL categories `/reset`
+and `/session` were deliberately NOT added to the blacklist (too generic —
+`/reset` matches UI-reset endpoints, `/session(s)` matches conference-talk
+pages; the specific `password-reset` variants were added instead). Post-fix
+verification: 192 unit tests, tsc/eslint/prettier clean, 6/6 Playwright e2e in
+real Chromium against a fresh build. Both external reviewers re-reviewed the
+diff (mode=result) and their refinements were incorporated: OTP value-check is
+context-gated to numeric/security fields to avoid eating benign short numbers,
+IBAN detection validates the mod-97 checksum, import runs in a single
+IndexedDB transaction with one trim per affected host/field, and
+`queryByFieldKey` applies the same origin filter as `queryByHost`.
+
 ## Security / Privacy
 
 ### 1. Data is keyed by `host`, not `origin` (Codex — confirmed) — MEDIUM/HIGH

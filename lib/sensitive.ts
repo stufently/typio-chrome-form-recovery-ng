@@ -171,21 +171,114 @@ function collectNameHaystacks(el: Editable): string[] {
     if (parts.length > 0) push(out, parts.join(' '));
   }
 
-  // Linked <label> by `for` or wrapping the input.
-  if (doc && el.id) {
-    const label = doc.querySelector(`label[for="${cssEscape(el.id)}"]`);
-    if (label) push(out, label.textContent);
-  }
-  let parent: HTMLElement | null = el.parentElement;
-  while (parent) {
-    if (parent.tagName === 'LABEL') {
-      push(out, parent.textContent);
-      break;
+  // Linked labels. `el.labels` natively covers both `label[for]` and wrapping
+  // <label> (and label's `htmlFor` re-association). Fall back to the manual
+  // walk only when the DOM implementation lacks `labels` (some test DOMs).
+  const labels = el.labels;
+  if (labels) {
+    for (const label of Array.from(labels)) push(out, label.textContent);
+  } else {
+    if (doc && el.id) {
+      const label = doc.querySelector(`label[for="${cssEscape(el.id)}"]`);
+      if (label) push(out, label.textContent);
     }
-    parent = parent.parentElement;
+    let parent: HTMLElement | null = el.parentElement;
+    while (parent) {
+      if (parent.tagName === 'LABEL') {
+        push(out, parent.textContent);
+        break;
+      }
+      parent = parent.parentElement;
+    }
   }
 
   return out;
+}
+
+// --- Value-based checks (2026-07-10 review, finding 4) -----------------------
+//
+// Attribute heuristics miss fields like `<input type="tel" name="number">`
+// holding a card PAN, or OTP inputs with no maxlength/pattern. These check the
+// VALUE about to be saved. Conservative: a match means "do not save".
+
+const IBAN_RE = /^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/i;
+
+export interface SensitiveValueContext {
+  type?: string;
+  fieldKey?: string;
+}
+
+/** Returns true if the value itself looks like a secret and must not be saved. */
+export function isSensitiveValue(value: string, ctx?: SensitiveValueContext): boolean {
+  const compact = value.replace(/[\s-]/g, '');
+
+  // Card PAN: 13-19 digits passing Luhn (allowing space/dash separators).
+  if (/^\d{13,19}$/.test(compact) && luhnValid(compact)) return true;
+
+  // IBAN: country code + check digits + BBAN.
+  if (IBAN_RE.test(compact) && ibanChecksumValid(compact)) return true;
+
+  // OTP/PIN-like: a short bare digit string has near-zero recovery value and a
+  // real chance of being a one-time code — skip it.
+  if (/^\d{4,8}$/.test(value.trim())) {
+    if (!ctx || isNumericOrSecurityFieldFromContext(ctx.type, ctx.fieldKey)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function ibanChecksumValid(iban: string): boolean {
+  const rearranged = iban.slice(4) + iban.slice(0, 4);
+  let numeric = '';
+  for (let i = 0; i < rearranged.length; i++) {
+    const code = rearranged.charCodeAt(i);
+    if (code >= 65 && code <= 90) {
+      // A-Z
+      numeric += String(code - 55);
+    } else if (code >= 97 && code <= 122) {
+      // a-z
+      numeric += String(code - 87);
+    } else if (code >= 48 && code <= 57) {
+      // 0-9
+      numeric += rearranged[i];
+    } else {
+      return false;
+    }
+  }
+  let checksum = 0;
+  for (let i = 0; i < numeric.length; i += 7) {
+    const chunk = String(checksum) + numeric.slice(i, i + 7);
+    checksum = parseInt(chunk, 10) % 97;
+  }
+  return checksum === 1;
+}
+
+function isNumericOrSecurityFieldFromContext(type?: string, fieldKey?: string): boolean {
+  if (type === 'tel' || type === 'number') return true;
+  if (!fieldKey) return false;
+
+  const securityKeywords =
+    /otp|pin|pass|code|mfa|2fa|totp|security|verification|auth|challenge|secret|token/i;
+  const excludeKeywords = /zip|postal|year|qty|quantity|amount|price|count|bill|invoice|order/i;
+
+  return securityKeywords.test(fieldKey) && !excludeKeywords.test(fieldKey);
+}
+
+function luhnValid(digits: string): boolean {
+  let sum = 0;
+  let double = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let d = digits.charCodeAt(i) - 48;
+    if (double) {
+      d *= 2;
+      if (d > 9) d -= 9;
+    }
+    sum += d;
+    double = !double;
+  }
+  return sum % 10 === 0;
 }
 
 function push(out: string[], v: string | null | undefined): void {

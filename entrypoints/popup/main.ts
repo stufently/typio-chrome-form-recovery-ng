@@ -123,6 +123,7 @@ export class TypioPopup extends LitElement {
 
   @state() private entries: Entry[] = [];
   @state() private host = '';
+  @state() private origin = '';
   @state() private loading = true;
 
   override async connectedCallback(): Promise<void> {
@@ -141,13 +142,23 @@ export class TypioPopup extends LitElement {
         return;
       }
       try {
-        this.host = new URL(tab.url).host;
+        const u = new URL(tab.url);
+        this.host = u.host;
+        // Scope the listing to the exact origin so http:// and https:// drafts
+        // of the same host don't mix. The ?host= override has no scheme, so it
+        // stays unscoped (screenshot pipeline / bookmarks).
+        this.origin = u.origin;
       } catch {
         this.loading = false;
         return;
       }
     }
-    const msg: Message = { type: 'QUERY_ENTRIES', host: this.host, limit: 100 };
+    const msg: Message = {
+      type: 'QUERY_ENTRIES',
+      host: this.host,
+      origin: this.origin || undefined,
+      limit: 100,
+    };
     const reply = await sendMessage(msg);
     if (reply.ok) {
       const data = reply.data as { entries?: Entry[] } | undefined;

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { isSensitive } from '../../lib/sensitive';
+import { isSensitive, isSensitiveValue } from '../../lib/sensitive';
 
 function input(attrs: Record<string, string>): HTMLInputElement {
   const el = document.createElement('input');
@@ -243,6 +243,60 @@ describe('isSensitive — form action URL', () => {
     form.appendChild(el);
     document.body.appendChild(form);
     expect(isSensitive(el)).toBe(true);
+  });
+});
+
+describe('isSensitiveValue — value-based checks', () => {
+  it('flags a valid card PAN (Luhn)', () => {
+    expect(isSensitiveValue('4111111111111111')).toBe(true); // classic Visa test PAN
+    expect(isSensitiveValue('4111 1111 1111 1111')).toBe(true);
+    expect(isSensitiveValue('4111-1111-1111-1111')).toBe(true);
+  });
+
+  it('does not flag a 16-digit string failing Luhn', () => {
+    expect(isSensitiveValue('4111111111111112')).toBe(false);
+  });
+
+  it('flags an IBAN', () => {
+    expect(isSensitiveValue('DE89370400440532013000')).toBe(true);
+    expect(isSensitiveValue('GB29 NWBK 6016 1331 9268 19')).toBe(true);
+  });
+
+  it('does not flag a string matching IBAN format but failing Mod-97 checksum', () => {
+    expect(isSensitiveValue('DE89370400440532013001')).toBe(false);
+    expect(isSensitiveValue('GB29 NWBK 6016 1331 9268 20')).toBe(false);
+  });
+
+  it('flags short bare digit strings (OTP/PIN-like) when no context or security/numeric context', () => {
+    expect(isSensitiveValue('1234')).toBe(true); // defaults to true with no context
+    expect(
+      isSensitiveValue('123456', {
+        type: 'text',
+        fieldKey: 'o=https://x.com|p=/|n=verification_code',
+      }),
+    ).toBe(true);
+    expect(isSensitiveValue('1234', { type: 'tel', fieldKey: 'o=https://x.com|p=/|n=phone' })).toBe(
+      true,
+    );
+  });
+
+  it('does not flag short bare digit strings (OTP/PIN-like) when context is non-numeric / non-security (e.g. zip/year)', () => {
+    expect(
+      isSensitiveValue('90210', { type: 'text', fieldKey: 'o=https://x.com|p=/|n=zip_code' }),
+    ).toBe(false);
+    expect(
+      isSensitiveValue('1995', { type: 'text', fieldKey: 'o=https://x.com|p=/|n=birth_year' }),
+    ).toBe(false);
+    expect(
+      isSensitiveValue('1000', { type: 'text', fieldKey: 'o=https://x.com|p=/|n=quantity' }),
+    ).toBe(false);
+  });
+
+  it('does not flag ordinary text or long numbers with words', () => {
+    expect(isSensitiveValue('hello world')).toBe(false);
+    expect(isSensitiveValue('call me at +7 999 123-45-67 tomorrow')).toBe(false);
+    expect(isSensitiveValue('order 123456 arrived broken')).toBe(false);
+    expect(isSensitiveValue('123')).toBe(false); // below OTP length
   });
 });
 

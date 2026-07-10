@@ -158,7 +158,8 @@ export class TypioOptions extends LitElement {
     a.href = url;
     a.download = 'typio-ng-export.json';
     a.click();
-    URL.revokeObjectURL(url);
+    // Revoking synchronously races the download in some browsers.
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   private async onPickImport(e: Event): Promise<void> {

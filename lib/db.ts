@@ -75,6 +75,7 @@ export async function resetDbForTests(): Promise<void> {
 
 export interface NewEntry {
   host: string;
+  origin?: string | undefined;
   pathname: string;
   fieldKey: string;
   value: string;
@@ -119,6 +120,7 @@ export async function putEntry(input: NewEntry, limits?: Partial<PutLimits>): Pr
 
   const entry: Entry = {
     host: input.host,
+    origin: input.origin,
     pathname: input.pathname,
     fieldKey: input.fieldKey,
     value: input.value,
@@ -153,7 +155,76 @@ export async function putEntry(input: NewEntry, limits?: Partial<PutLimits>): Pr
   return { id, inserted: true };
 }
 
+export async function importEntries(
+  inputs: NewEntry[],
+  limits?: Partial<PutLimits>,
+): Promise<void> {
+  const { maxPerField, maxPerHost } = { ...DEFAULT_LIMITS, ...limits };
+  const db = await getDb();
+  const now = Date.now();
+
+  const tx = db.transaction('entries', 'readwrite');
+  const store = tx.store;
+  const dedupeIdx = store.index('by-dedupe');
+
+  const hostsToTrim = new Set<string>();
+  const fieldsToTrim = new Set<string>();
+
+  for (const input of inputs) {
+    const dupKey = IDBKeyRange.only([input.host, input.fieldKey, input.textHash]);
+    const existing = await dedupeIdx.get(dupKey);
+    if (existing) {
+      existing.updatedAt = now;
+      await store.put(existing);
+      continue;
+    }
+
+    const entry: Entry = {
+      host: input.host,
+      origin: input.origin,
+      pathname: input.pathname,
+      fieldKey: input.fieldKey,
+      value: input.value,
+      type: input.type,
+      valueLen: input.value.length,
+      textHash: input.textHash,
+      createdAt: now,
+      updatedAt: now,
+    };
+    await store.add(entry);
+
+    hostsToTrim.add(input.host);
+    fieldsToTrim.add(input.host + '|' + input.fieldKey);
+  }
+
+  const fieldIdx = store.index('by-fieldKey');
+  for (const item of fieldsToTrim) {
+    const idx = item.indexOf('|');
+    const host = item.slice(0, idx);
+    const fieldKey = item.slice(idx + 1);
+    await trimOldest(
+      fieldIdx as unknown as TrimmableIndex,
+      IDBKeyRange.bound([host, fieldKey, -Infinity], [host, fieldKey, Infinity]),
+      maxPerField,
+      store as unknown as TrimmableStore,
+    );
+  }
+
+  const hostIdx = store.index('by-host');
+  for (const host of hostsToTrim) {
+    await trimOldest(
+      hostIdx as unknown as TrimmableIndex,
+      IDBKeyRange.bound([host, -Infinity], [host, Infinity]),
+      maxPerHost,
+      store as unknown as TrimmableStore,
+    );
+  }
+
+  await tx.done;
+}
+
 interface TrimmableIndex {
+  count(range: IDBKeyRange): Promise<number>;
   openCursor(
     range: IDBKeyRange,
     direction: IDBCursorDirection,
@@ -164,27 +235,48 @@ interface TrimmableStore {
   delete(key: IDBValidKey): Promise<void>;
 }
 
-// Trim an index's contents within a range to at most `cap` rows, deleting the oldest.
+// Trim an index's contents within a range to at most `cap` rows, deleting the
+// oldest. count() first so the common no-overflow case costs one B-tree count
+// instead of a full cursor walk on every save (2026-07-10 review, finding 10).
 async function trimOldest(
   idx: TrimmableIndex,
   range: IDBKeyRange,
   cap: number,
   store: TrimmableStore,
 ): Promise<void> {
+  const total = await idx.count(range);
+  if (total <= cap) return;
+  let excess = total - cap;
   let cursor = await idx.openCursor(range, 'next');
-  const keys: IDBValidKey[] = [];
-  while (cursor) {
-    keys.push(cursor.primaryKey);
+  while (cursor && excess > 0) {
+    await store.delete(cursor.primaryKey);
+    excess--;
     cursor = (await cursor.continue()) as typeof cursor;
-  }
-  if (keys.length > cap) {
-    const toRemove = keys.slice(0, keys.length - cap);
-    for (const k of toRemove) await store.delete(k);
   }
 }
 
 export interface QueryOptions {
   limit?: number;
+  /**
+   * When set, only entries saved from this exact origin are returned. Without
+   * it http://example.com and https://example.com share a bucket — an insecure
+   * page could list drafts typed on the HTTPS site (2026-07-10 review,
+   * finding 1).
+   */
+  origin?: string | undefined;
+}
+
+/**
+ * Origin an entry was saved from. Rows written before 2026-07 have no `origin`
+ * field, but every fieldKey has always started with "o=<origin>|".
+ */
+export function entryOrigin(entry: Entry): string {
+  if (entry.origin) return entry.origin;
+  if (entry.fieldKey.startsWith('o=')) {
+    const end = entry.fieldKey.indexOf('|');
+    if (end > 2) return entry.fieldKey.slice(2, end);
+  }
+  return '';
 }
 
 export async function queryByHost(host: string, opts: QueryOptions = {}): Promise<Entry[]> {
@@ -196,7 +288,9 @@ export async function queryByHost(host: string, opts: QueryOptions = {}): Promis
   const out: Entry[] = [];
   let cursor = await idx.openCursor(range, 'prev');
   while (cursor && out.length < limit) {
-    out.push(cursor.value);
+    if (!opts.origin || entryOrigin(cursor.value) === opts.origin) {
+      out.push(cursor.value);
+    }
     cursor = await cursor.continue();
   }
   await tx.done;
@@ -216,7 +310,9 @@ export async function queryByFieldKey(
   const out: Entry[] = [];
   let cursor = await idx.openCursor(range, 'prev');
   while (cursor && out.length < limit) {
-    out.push(cursor.value);
+    if (!opts.origin || entryOrigin(cursor.value) === opts.origin) {
+      out.push(cursor.value);
+    }
     cursor = await cursor.continue();
   }
   await tx.done;
@@ -246,14 +342,44 @@ export async function deleteOlderThan(cutoffMs: number): Promise<number> {
 
 export async function deleteByHost(host: string): Promise<number> {
   const db = await getDb();
-  const tx = db.transaction('entries', 'readwrite');
-  const idx = tx.store.index('by-host');
+  // Clear BOTH stores — leaving `fields` rows behind would retain metadata
+  // about which sites/fields the user typed into after they asked us to
+  // forget the site (2026-07-10 review, finding 3).
+  const tx = db.transaction(['entries', 'fields'], 'readwrite');
+  const idx = tx.objectStore('entries').index('by-host');
   const range = IDBKeyRange.bound([host, -Infinity], [host, Infinity]);
   let deleted = 0;
   let cursor = await idx.openCursor(range);
   while (cursor) {
     await cursor.delete();
     deleted++;
+    cursor = await cursor.continue();
+  }
+  const fieldsIdx = tx.objectStore('fields').index('by-host');
+  let fieldsCursor = await fieldsIdx.openCursor(range);
+  while (fieldsCursor) {
+    await fieldsCursor.delete();
+    fieldsCursor = await fieldsCursor.continue();
+  }
+  await tx.done;
+  return deleted;
+}
+
+/**
+ * Drop field metadata not seen since the cutoff. The fields store has no
+ * standalone lastSeen index, so this walks the store — it runs once per day
+ * from the cleanup alarm, where a full scan is fine.
+ */
+export async function pruneFieldMetaOlderThan(cutoffMs: number): Promise<number> {
+  const db = await getDb();
+  const tx = db.transaction('fields', 'readwrite');
+  let deleted = 0;
+  let cursor = await tx.store.openCursor();
+  while (cursor) {
+    if (cursor.value.lastSeen < cutoffMs) {
+      await cursor.delete();
+      deleted++;
+    }
     cursor = await cursor.continue();
   }
   await tx.done;

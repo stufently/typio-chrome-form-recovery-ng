@@ -1,5 +1,15 @@
 # Current Session Tasks
 
+## 2026-07-10 — Apply code-review fixes + verify in browser
+
+- [COMPLETED] Implemented all findings from docs/CODE_REVIEW_2026-07-10.md
+  (finding 9 intentionally kept as product behavior; /reset & /session URL
+  categories intentionally omitted). Post-implementation review by Codex +
+  Antigravity incorporated (context-gated OTP check, IBAN mod-97, single-tx
+  bulk import, origin filter in queryByFieldKey). Verified: 192 unit tests,
+  tsc/eslint/prettier clean, fresh chrome build, 6/6 Playwright e2e in real
+  Chromium (autosave → reload → restore works end-to-end). Released as v1.0.2.
+
 ## 2026-07-10 — Full code review (self + Codex + agy)
 
 - [COMPLETED] Full review of the extension codebase: own review + Codex +

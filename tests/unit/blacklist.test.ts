@@ -83,3 +83,24 @@ describe('isUrlInSensitiveCategory', () => {
     expect(isUrlInSensitiveCategory('/CHECKOUT')).toBe(true);
   });
 });
+
+describe('isUrlInSensitiveCategory — 2026-07-10 additions', () => {
+  it('matches password-reset flows', () => {
+    expect(isUrlInSensitiveCategory('/password-reset')).toBe(true);
+    expect(isUrlInSensitiveCategory('/reset-password/step-1')).toBe(true);
+    expect(isUrlInSensitiveCategory('/forgot-password')).toBe(true);
+    expect(isUrlInSensitiveCategory('/settings/change-password')).toBe(true);
+  });
+
+  it('matches /mfa, /otp, /passcode, /challenge', () => {
+    expect(isUrlInSensitiveCategory('/mfa')).toBe(true);
+    expect(isUrlInSensitiveCategory('/otp/verify')).toBe(true);
+    expect(isUrlInSensitiveCategory('/passcode')).toBe(true);
+    expect(isUrlInSensitiveCategory('/account/challenge')).toBe(true);
+  });
+
+  it('still ignores benign lookalikes', () => {
+    expect(isUrlInSensitiveCategory('/otpimization')).toBe(false);
+    expect(isUrlInSensitiveCategory('/mfaq')).toBe(false);
+  });
+});

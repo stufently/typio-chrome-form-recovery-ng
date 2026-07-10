@@ -6,22 +6,41 @@ import browser from 'webextension-polyfill';
 import { onMessage } from '../lib/messaging';
 import {
   putEntry,
+  importEntries,
   queryByHost,
   queryByFieldKey,
   deleteEntry,
   deleteByHost,
   deleteOlderThan,
+  pruneFieldMetaOlderThan,
   upsertFieldMeta,
   dumpAllEntries,
 } from '../lib/db';
 import { sha256Hex } from '../lib/hash';
 import { getSettings, setSettings } from '../lib/settings';
 import { isHostnameBlocklisted, isUrlInSensitiveCategory } from '../lib/blacklist';
+import { isRestrictedHost } from '../lib/restricted-pages';
+import { isSensitiveValue } from '../lib/sensitive';
 import { buildExport, parseImport } from '../lib/export-import';
-import type { MessageResponse, ImportSummary } from '../lib/types';
+import type { Message, MessageResponse, ImportSummary } from '../lib/types';
 
 const CLEANUP_ALARM = 'cleanup';
 const CONTEXT_MENU_ID = 'typio-ng-recover';
+const MAX_VALUE_LEN = 200_000;
+const MAX_QUERY_LIMIT = 500;
+
+// Content scripts (senders whose URL is a web page, not one of our extension
+// pages) may only save and read drafts scoped to their own page. Everything
+// else — export, import, settings, deletion — is reserved for extension pages.
+// This keeps a single compromised renderer from reading or wiping the whole
+// store (2026-07-10 review, finding 2). NOTE: popup/options can run inside a
+// tab (options_ui.open_in_tab), so "has sender.tab" is NOT the right
+// discriminator — the sender URL scheme+origin is.
+const WEB_SENDER_ALLOWED: ReadonlySet<Message['type']> = new Set([
+  'PING',
+  'SAVE_ENTRY',
+  'QUERY_ENTRIES',
+]);
 
 export default defineBackground(() => {
   const ensureAlarms = async (): Promise<void> => {
@@ -61,14 +80,15 @@ export default defineBackground(() => {
   browser.contextMenus.onClicked.addListener((info, tab) => {
     if (info.menuItemId !== CONTEXT_MENU_ID) return;
     if (!tab?.id) return;
-    void browser.tabs.sendMessage(tab.id, { type: 'CONTEXT_MENU_RECOVER' });
+    // Pages without our content script (chrome://, PDF viewer) reject — fine.
+    void browser.tabs.sendMessage(tab.id, { type: 'CONTEXT_MENU_RECOVER' }).catch(() => {});
   });
 
   browser.commands.onCommand.addListener(async (command) => {
     if (command !== 'open-recovery-dialog') return;
     const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) return;
-    await browser.tabs.sendMessage(tab.id, { type: 'OPEN_RECOVERY_DIALOG' });
+    await browser.tabs.sendMessage(tab.id, { type: 'OPEN_RECOVERY_DIALOG' }).catch(() => {});
   });
 
   async function runCleanup(): Promise<void> {
@@ -76,14 +96,33 @@ export default defineBackground(() => {
     const cutoff = Date.now() - settings.retentionDays * 86_400_000;
     try {
       await deleteOlderThan(cutoff);
+      await pruneFieldMetaOlderThan(cutoff);
     } catch (e) {
       console.error('typio-ng cleanup failed', e);
     }
   }
 
   onMessage(async (msg, sender): Promise<MessageResponse> => {
-    if (msg.type === 'SAVE_ENTRY' && sender.tab?.incognito) {
-      return { ok: true };
+    const senderIsExtensionPage = (sender.url ?? '').startsWith(browser.runtime.getURL(''));
+    if (!senderIsExtensionPage && !WEB_SENDER_ALLOWED.has(msg.type)) {
+      return { ok: false, error: 'not-allowed-from-content-script' };
+    }
+
+    // For content-script senders, derive the page identity from the sender
+    // itself rather than trusting the payload — sender.url is set by the
+    // browser.
+    let senderUrl: URL | null = null;
+    if (!senderIsExtensionPage) {
+      try {
+        senderUrl = new URL(sender.url ?? sender.tab?.url ?? '');
+      } catch {
+        return { ok: false, error: 'unknown-sender-url' };
+      }
+    }
+
+    if (!senderIsExtensionPage && sender.tab?.incognito) {
+      if (msg.type === 'SAVE_ENTRY') return { ok: true };
+      if (msg.type === 'QUERY_ENTRIES') return { ok: true, data: { entries: [] } };
     }
 
     switch (msg.type) {
@@ -91,16 +130,26 @@ export default defineBackground(() => {
         return { ok: true, data: 'pong' };
 
       case 'SAVE_ENTRY': {
-        const { host, pathname, fieldKey, value, type } = msg.payload;
-        if (!host || !fieldKey || value.length < 2) return { ok: true };
+        const { fieldKey, value, type } = msg.payload;
+        const host = senderUrl ? senderUrl.host : msg.payload.host;
+        const origin = senderUrl ? senderUrl.origin : msg.payload.origin;
+        const pathname = senderUrl ? senderUrl.pathname : msg.payload.pathname;
+        if (!host || !fieldKey || value.length < 2 || value.length > MAX_VALUE_LEN) {
+          return { ok: true };
+        }
+        if (senderUrl && !fieldKey.startsWith('o=' + senderUrl.origin + '|')) {
+          return { ok: true };
+        }
 
         const settings = await getSettings();
+        if (isRestrictedHost(host)) return { ok: true };
         if (isHostnameBlocklisted(host, settings.blocklistHostnames)) return { ok: true };
         if (isUrlInSensitiveCategory(pathname)) return { ok: true };
+        if (isSensitiveValue(value, { type, fieldKey })) return { ok: true };
 
         const textHash = await sha256Hex(value);
         const result = await putEntry(
-          { host, pathname, fieldKey, value, type, textHash },
+          { host, origin, pathname, fieldKey, value, type, textHash },
           {
             maxPerField: settings.maxEntriesPerField,
             maxPerHost: settings.maxEntriesPerHost,
@@ -116,9 +165,15 @@ export default defineBackground(() => {
       }
 
       case 'QUERY_ENTRIES': {
+        const host = senderUrl ? senderUrl.host : msg.host;
+        const origin = senderUrl ? senderUrl.origin : msg.origin;
+        if (senderUrl && msg.fieldKey && !msg.fieldKey.startsWith('o=' + senderUrl.origin + '|')) {
+          return { ok: true, data: { entries: [] } };
+        }
+        const limit = Math.min(msg.limit ?? (msg.fieldKey ? 50 : 100), MAX_QUERY_LIMIT);
         const entries = msg.fieldKey
-          ? await queryByFieldKey(msg.host, msg.fieldKey, { limit: msg.limit ?? 50 })
-          : await queryByHost(msg.host, { limit: msg.limit ?? 100 });
+          ? await queryByFieldKey(host, msg.fieldKey, { limit, origin })
+          : await queryByHost(host, { limit, origin });
         return { ok: true, data: { entries } };
       }
 
@@ -161,23 +216,23 @@ export default defineBackground(() => {
         // parseImport now hands us only insertable, non-duplicate entries.
         // Recompute textHash on apply rather than trusting the import — a
         // crafted bundle could otherwise poison future dedupe lookups.
+        const toImport = [];
         for (const entry of parsed.bundle.entries) {
           const trustedHash = await sha256Hex(entry.value);
-          await putEntry(
-            {
-              host: entry.host,
-              pathname: entry.pathname,
-              fieldKey: entry.fieldKey,
-              value: entry.value,
-              type: entry.type,
-              textHash: trustedHash,
-            },
-            {
-              maxPerField: parsed.bundle.settings.maxEntriesPerField,
-              maxPerHost: parsed.bundle.settings.maxEntriesPerHost,
-            },
-          );
+          toImport.push({
+            host: entry.host,
+            origin: entry.origin,
+            pathname: entry.pathname,
+            fieldKey: entry.fieldKey,
+            value: entry.value,
+            type: entry.type,
+            textHash: trustedHash,
+          });
         }
+        await importEntries(toImport, {
+          maxPerField: parsed.bundle.settings.maxEntriesPerField,
+          maxPerHost: parsed.bundle.settings.maxEntriesPerHost,
+        });
         return { ok: true, data: { summary: parsed.summary } };
       }
 

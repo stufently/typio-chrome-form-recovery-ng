@@ -6,6 +6,7 @@
 
 import type { Entry, ExportBundle, ImportBundle, ImportSummary, Settings } from './types';
 import { DEFAULT_SETTINGS } from './types';
+import { sanitizeSettingsPatch } from './settings-sanitize';
 
 export const EXPORT_SCHEMA_VERSION = 1;
 export const MAX_IMPORT_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -145,6 +146,10 @@ function validateEntry(raw: unknown): Entry | null {
     return null;
   }
   if (typeof r['textHash'] !== 'string' || r['textHash'].length === 0) return null;
+  const origin =
+    typeof r['origin'] === 'string' && /^[a-z][a-z0-9+.-]*:\/\//i.test(r['origin'])
+      ? r['origin']
+      : undefined;
   const now = Date.now();
   const createdAt =
     typeof r['createdAt'] === 'number' && Number.isFinite(r['createdAt'])
@@ -157,6 +162,7 @@ function validateEntry(raw: unknown): Entry | null {
 
   return {
     host: r['host'],
+    origin,
     pathname: r['pathname'] as string,
     fieldKey: r['fieldKey'] as string,
     value: r['value'] as string,
@@ -169,36 +175,7 @@ function validateEntry(raw: unknown): Entry | null {
 }
 
 function mergeSettings(raw: Record<string, unknown>): Settings {
-  const safe: Settings = { ...DEFAULT_SETTINGS };
-  if (
-    typeof raw['retentionDays'] === 'number' &&
-    raw['retentionDays'] >= 1 &&
-    raw['retentionDays'] <= 365
-  ) {
-    safe.retentionDays = Math.floor(raw['retentionDays'] as number);
-  }
-  if (Array.isArray(raw['blocklistHostnames'])) {
-    safe.blocklistHostnames = (raw['blocklistHostnames'] as unknown[])
-      .filter((x): x is string => typeof x === 'string')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0)
-      .slice(0, 5000);
-  }
-  if (
-    typeof raw['maxEntriesPerField'] === 'number' &&
-    Number.isFinite(raw['maxEntriesPerField']) &&
-    raw['maxEntriesPerField'] >= 1
-  ) {
-    safe.maxEntriesPerField = Math.min(1000, Math.floor(raw['maxEntriesPerField'] as number));
-  }
-  if (
-    typeof raw['maxEntriesPerHost'] === 'number' &&
-    Number.isFinite(raw['maxEntriesPerHost']) &&
-    raw['maxEntriesPerHost'] >= 1
-  ) {
-    safe.maxEntriesPerHost = Math.min(100_000, Math.floor(raw['maxEntriesPerHost'] as number));
-  }
-  return safe;
+  return { ...DEFAULT_SETTINGS, ...sanitizeSettingsPatch(raw) };
 }
 
 export function exportToBlob(bundle: ExportBundle): Blob {

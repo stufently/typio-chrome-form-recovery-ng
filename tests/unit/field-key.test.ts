@@ -154,6 +154,42 @@ describe('generateFieldKey', () => {
     expect(k).toContain('ph=Search…');
   });
 
+  it('separates two type-less inputs with the same name by ordinal', () => {
+    // Attribute selectors miss <input> without a type attribute — the old
+    // selector-based ordinal collided here (review finding 7).
+    const a = document.createElement('input');
+    a.name = 'q';
+    const b = document.createElement('input');
+    b.name = 'q';
+    document.body.appendChild(a);
+    document.body.appendChild(b);
+    expect(generateFieldKey(ctx(a))).not.toBe(generateFieldKey(ctx(b)));
+  });
+
+  it('does not throw for names with backslashes or quotes', () => {
+    const i = document.createElement('input');
+    i.type = 'text';
+    i.name = 'weird\\"name\\';
+    document.body.appendChild(i);
+    expect(() => generateFieldKey(ctx(i))).not.toThrow();
+  });
+
+  it('scopes ordinal to the form — outside inputs do not shift it', () => {
+    const form = document.createElement('form');
+    const inForm = document.createElement('input');
+    inForm.type = 'text';
+    form.appendChild(inForm);
+    document.body.appendChild(form);
+    const keyBefore = generateFieldKey(ctx(inForm));
+
+    // An unrelated same-shaped input appears earlier in the document.
+    const outside = document.createElement('input');
+    outside.type = 'text';
+    document.body.insertBefore(outside, form);
+
+    expect(generateFieldKey(ctx(inForm))).toBe(keyBefore);
+  });
+
   it('treats textarea distinct from text input even with same name', () => {
     const i = document.createElement('input');
     i.type = 'text';

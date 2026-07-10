@@ -3,6 +3,7 @@
 
 import browser from 'webextension-polyfill';
 import { DEFAULT_SETTINGS, type Settings } from './types';
+import { sanitizeSettingsPatch } from './settings-sanitize';
 
 const KEY = 'settings';
 
@@ -14,7 +15,11 @@ export async function getSettings(): Promise<Settings> {
 
 export async function setSettings(patch: Partial<Settings>): Promise<Settings> {
   const current = await getSettings();
-  const next: Settings = { ...current, ...patch, schemaVersion: 1 };
+  // Sanitize — the patch may arrive via runtime messaging (UPDATE_SETTINGS)
+  // and must not be able to write NaN/zero caps. Invalid fields keep their
+  // current value.
+  const safe = sanitizeSettingsPatch(patch as Record<string, unknown>);
+  const next: Settings = { ...current, ...safe, schemaVersion: 1 };
   await browser.storage.local.set({ [KEY]: next });
   return next;
 }

@@ -79,30 +79,32 @@ export function normalisePathname(pathname: string): string {
   return pathname;
 }
 
-/** Count siblings with the same tag+type+name appearing earlier in document order. */
+/**
+ * Count peers (same tag + type + name) appearing earlier, scoped to the
+ * element's form when it has one. Compares reflected DOM properties instead of
+ * building a CSS selector — attribute selectors miss type-less inputs
+ * (`input[type="text"]` does not match `<input>`) and need escaping for exotic
+ * names (2026-07-10 review, findings 7/8). `form.elements` also picks up
+ * controls associated via the `form` attribute that live outside the form tag.
+ */
 function ordinalAmongPeers(el: Editable): number {
-  const selector = peerSelector(el);
-  const all = el.ownerDocument?.querySelectorAll(selector);
-  if (!all) return 0;
+  const scope: ArrayLike<Element> = el.form
+    ? el.form.elements
+    : (el.ownerDocument ?? document).querySelectorAll('input, textarea');
+  const isTextarea = el instanceof HTMLTextAreaElement;
+  const type = isTextarea ? '' : (el as HTMLInputElement).type || 'text';
+  const name = el.name;
   let n = 0;
-  for (const node of all) {
+  for (let i = 0; i < scope.length; i++) {
+    const node = scope[i];
     if (node === el) return n;
-    n++;
+    if (isTextarea) {
+      if (node instanceof HTMLTextAreaElement && node.name === name) n++;
+    } else if (node instanceof HTMLInputElement) {
+      if ((node.type || 'text') === type && node.name === name) n++;
+    }
   }
   return n;
-}
-
-function peerSelector(el: Editable): string {
-  if (el instanceof HTMLTextAreaElement) return 'textarea';
-  const type = el.type || 'text';
-  const name = el.name;
-  if (name) {
-    // CSS escape via attribute selector with quoted value — naive escape is
-    // enough for our case (name on real forms is alphanum + dash + underscore).
-    const safeName = name.replace(/"/g, '\\"');
-    return `input[type="${type}"][name="${safeName}"]`;
-  }
-  return `input[type="${type}"]`;
 }
 
 export const ALLOWED_INPUT_TYPES: ReadonlySet<string> = new Set([

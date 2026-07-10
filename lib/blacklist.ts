@@ -25,6 +25,14 @@ const URL_CATEGORY_PATTERNS: ReadonlyArray<RegExp> = [
   /\/two-factor(?:[/?]|$)/i,
   /\/2fa(?:[/?]|$)/i,
   /\/verify(?:[/?]|$)/i,
+  /\/mfa(?:[/?]|$)/i,
+  /\/otp(?:[/?]|$)/i,
+  /\/passcode(?:[/?]|$)/i,
+  /\/challenge(?:[/?]|$)/i,
+  /\/password-reset(?:[/?]|$)/i,
+  /\/reset-password(?:[/?]|$)/i,
+  /\/forgot-password(?:[/?]|$)/i,
+  /\/change-password(?:[/?]|$)/i,
 ];
 
 export function isUrlInSensitiveCategory(pathname: string): boolean {

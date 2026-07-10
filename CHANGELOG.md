@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security & fixes — apply the 2026-07-10 review findings
+
+- **Origin scoping.** Entries now record their `origin`; host queries filter by
+  it (legacy rows resolve origin from the `fieldKey` prefix). Drafts typed on
+  `https://site` are no longer visible/restorable from `http://site`.
+- **Sender authorization in the service worker.** Web-page senders (content
+  scripts) may only `SAVE_ENTRY`/`QUERY_ENTRIES`/`PING`, with host, origin and
+  pathname derived from `sender.url` instead of the payload, plus a
+  fieldKey-origin consistency check. Export/import/settings/deletion are
+  reserved for extension pages (detected by `runtime.getURL` prefix — popup and
+  options run in tabs, so `sender.tab` is not the discriminator).
+- **`fields` metadata cleanup.** "Clear data for host" now also removes that
+  host's field metadata, and the daily cleanup prunes metadata older than the
+  retention window — previously it was kept forever.
+- **Value-based sensitive detection.** Card PANs (Luhn), IBANs (mod-97
+  checksum) and OTP/PIN-like short digit strings (context-gated to
+  numeric/security fields) are refused at save time even when field attributes
+  look innocent. Blacklist gained password-reset/mfa/otp/passcode/challenge
+  URL categories.
+- **Settings validation.** `UPDATE_SETTINGS` and import share one sanitizer;
+  NaN retention or zero caps can no longer break cleanup/trimming.
+- **Field-key stability.** Ordinal computation no longer uses CSS attribute
+  selectors (type-less inputs collided; exotic names threw) and is scoped to
+  the owning form.
+- **Performance.** Per-save trimming is count-based instead of a full cursor
+  walk; import writes all entries in a single transaction and trims once per
+  affected host/field; saved values are capped at 200k chars; query limit
+  clamped to 500.
+- Misc: restricted-host re-check in SAVE, caught `tabs.sendMessage` rejections,
+  deferred `revokeObjectURL`, native `el.labels` for label lookup.
+- Verified: 192 unit tests (+22), 6/6 e2e in real Chromium (autosave → reload →
+  restore, sensitive-field refusal, store screenshots), tsc/eslint/prettier
+  clean. Reviewed post-implementation by Codex and Antigravity.
+
 ### Added — full code-review report (2026-07-10)
 
 - `docs/CODE_REVIEW_2026-07-10.md`: three-way review (Claude + Codex +

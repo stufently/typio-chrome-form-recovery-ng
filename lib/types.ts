@@ -16,6 +16,12 @@ export interface FieldIdentity {
 export interface Entry {
   id?: number;
   host: string;
+  /**
+   * Site origin including scheme, e.g. "https://example.com". Optional for
+   * rows written before 2026-07 — for those the origin is recoverable from the
+   * fieldKey prefix ("o=<origin>|…"); see entryOrigin() in lib/db.ts.
+   */
+  origin?: string | undefined;
   pathname: string;
   fieldKey: string;
   value: string;
@@ -64,6 +70,7 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export interface SaveEntryPayload {
   host: string;
+  origin?: string | undefined;
   pathname: string;
   fieldKey: string;
   value: string;
@@ -78,7 +85,13 @@ export interface RestoreEntryPayload {
 
 export type Message =
   | { type: 'SAVE_ENTRY'; payload: SaveEntryPayload }
-  | { type: 'QUERY_ENTRIES'; host: string; fieldKey?: string; limit?: number }
+  | {
+      type: 'QUERY_ENTRIES';
+      host: string;
+      origin?: string | undefined;
+      fieldKey?: string;
+      limit?: number;
+    }
   | { type: 'DELETE_ENTRY'; id: number }
   | { type: 'OPEN_RECOVERY_DIALOG' }
   | { type: 'CONTEXT_MENU_RECOVER' }

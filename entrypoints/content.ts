@@ -9,7 +9,7 @@ import { defineContentScript } from 'wxt/sandbox';
 import browser from 'webextension-polyfill';
 import { createDebouncer } from '../lib/debounce';
 import { generateFieldKey, isCandidateField } from '../lib/field-key';
-import { isSensitive } from '../lib/sensitive';
+import { isSensitive, isSensitiveValue } from '../lib/sensitive';
 import { isHostnameBlocklisted, isUrlInSensitiveCategory } from '../lib/blacklist';
 import { isRestrictedLocation } from '../lib/restricted-pages';
 import { sendMessage } from '../lib/messaging';
@@ -19,6 +19,9 @@ import { renderRecoveryDialog, type RecoveryDialogHandle } from '../components/r
 
 const DEBOUNCE_MS = 750;
 const MIN_VALUE_LEN = 2;
+// Values beyond this are pastes, not typing — hashing and rewriting megabytes
+// to IndexedDB on every debounce tick is pure overhead (review finding 11).
+const MAX_VALUE_LEN = 200_000;
 const DIALOG_HOST_ID = '__typio-ng-recovery-host__';
 
 type Editable = HTMLInputElement | HTMLTextAreaElement;
@@ -91,12 +94,17 @@ export default defineContentScript({
 
       const onInput = () => {
         const value = el.value;
-        if (value.length < MIN_VALUE_LEN) return;
+        // A pending debounced save is deliberately NOT cancelled when the value
+        // drops below the minimum: recovering text the user just deleted is the
+        // point of this extension.
+        if (value.length < MIN_VALUE_LEN || value.length > MAX_VALUE_LEN) return;
         if (isSensitive(el, { pathname: location.pathname })) return;
-        if (isHostnameBlocklisted(location.hostname, settings.blocklistHostnames)) return;
         const fieldKey = computeKey();
+        if (isSensitiveValue(value, { type: fieldType(el), fieldKey })) return;
+        if (isHostnameBlocklisted(location.hostname, settings.blocklistHostnames)) return;
         const payload = {
           host: location.host,
+          origin: location.origin,
           pathname: location.pathname,
           fieldKey,
           value,
@@ -200,6 +208,7 @@ export default defineContentScript({
       const reply = await sendMessage({
         type: 'QUERY_ENTRIES',
         host: location.host,
+        origin: location.origin,
         limit: 200,
       });
       const entries: Entry[] = reply.ok

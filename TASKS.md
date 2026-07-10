@@ -2,12 +2,17 @@
 
 ## Active
 
-### 2026-07-10 — Apply code-review fixes (pending owner decision)
-
-- docs/CODE_REVIEW_2026-07-10.md lists 11 verified findings (security,
-  bugs, performance). Fixes not yet applied.
+(none)
 
 ## Completed
+
+### 2026-07-10 — Apply code-review fixes + browser verification
+
+- Implemented all 2026-07-10 review findings (origin scoping, sender
+  authorization, fields-store cleanup, value-based sensitive checks,
+  settings validation, field-key stability, count-based trim, bulk import,
+  value cap, polish). 192 unit tests + 6/6 e2e in real Chromium green on a
+  fresh build. Post-review by Codex + agy incorporated. Released as v1.0.2.
 
 ### 2026-07-10 — Full code review (self + Codex + agy)
 
