@@ -5,7 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.0.2] — 2026-07-10
+
+Released to the Chrome Web Store (upload accepted, pending store review).
+The exact `typio-chrome-form-recovery-ng-chrome.zip` attached to the GitHub
+release — the same artifact uploaded to CWS — was additionally loaded into
+real Chromium and passed the smoke flow: autosave → reload → recover, and
+refusal to save password/credit-card fields. This is the functionality whose
+breakage caused the 2026-06-22 store removal.
 
 ### Security & fixes — apply the 2026-07-10 review findings
 

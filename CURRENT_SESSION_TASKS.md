@@ -1,5 +1,13 @@
 # Current Session Tasks
 
+## 2026-07-10 — Verify the RELEASED v1.0.2 artifact in a real browser
+
+- [COMPLETED] Downloaded the exact chrome zip from the v1.0.2 GitHub release
+  (same artifact uploaded to CWS), verified manifest v1.0.2 + new code
+  markers, loaded it in real Chromium: smoke flow green (autosave → reload →
+  recover; refuses password/credit-card fields) — the exact functionality
+  behind the 2026-06-22 removal.
+
 ## 2026-07-10 — Apply code-review fixes + verify in browser
 
 - [COMPLETED] Implemented all findings from docs/CODE_REVIEW_2026-07-10.md

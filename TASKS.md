@@ -6,6 +6,12 @@
 
 ## Completed
 
+### 2026-07-10 — Verify released v1.0.2 artifact in a real browser
+
+- Downloaded the release chrome zip (the CWS upload artifact), ran the
+  Playwright smoke flow against it in real Chromium: 2/2 green
+  (autosave/recover + sensitive-field refusal).
+
 ### 2026-07-10 — Apply code-review fixes + browser verification
 
 - Implemented all 2026-07-10 review findings (origin scoping, sender
