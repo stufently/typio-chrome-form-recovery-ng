@@ -1,5 +1,15 @@
 # Current Session Tasks
 
+## 2026-07-10 — Full code review (self + Codex + agy)
+
+- [COMPLETED] Full review of the extension codebase: own review + Codex +
+  Antigravity in parallel, findings cross-verified against the code.
+  Report: docs/CODE_REVIEW_2026-07-10.md. 11 findings + polish items:
+  top ones are host-vs-origin data mixing, unvalidated message senders,
+  never-cleaned `fields` store, value-blind sensitive detection, O(n) trim
+  per save / O(n²) import. No XSS found; permissions minimal. Fixes not
+  applied yet — awaiting owner's pick.
+
 ## 2026-07-10 — Check CWS publication status
 
 - [COMPLETED] Checked Chrome Web Store status for Typio Chrome Form Recovery NG

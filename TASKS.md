@@ -1,6 +1,19 @@
 # Tasks
 
+## Active
+
+### 2026-07-10 — Apply code-review fixes (pending owner decision)
+
+- docs/CODE_REVIEW_2026-07-10.md lists 11 verified findings (security,
+  bugs, performance). Fixes not yet applied.
+
 ## Completed
+
+### 2026-07-10 — Full code review (self + Codex + agy)
+
+- Reviewed the entire extension source (Claude + Codex + Antigravity in
+  parallel); cross-verified all reviewer findings against the code and
+  published docs/CODE_REVIEW_2026-07-10.md.
 
 ### 2026-07-10 — Check CWS publication status
 

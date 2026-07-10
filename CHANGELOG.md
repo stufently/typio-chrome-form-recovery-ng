@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added — full code-review report (2026-07-10)
+
+- `docs/CODE_REVIEW_2026-07-10.md`: three-way review (Claude + Codex +
+  Antigravity) of the whole codebase. 11 verified findings — headline items:
+  data keyed by `host` instead of `origin` (http/https drafts mix), message
+  handlers trust payloads without sender authorization, `fields` store never
+  cleaned by clear/retention, sensitive-field detection lacks value-based
+  checks (Luhn/OTP), `trimOldest` is O(n) per save and import is O(n²).
+  No XSS found. Fixes intentionally not applied in this change.
+
 ### Fixed — content script crash disabled all autosave (2026-06-24)
 
 - **Critical: the core autosave feature never ran.** `components/recovery-dialog.ts`
