@@ -3,7 +3,7 @@
 #
 # Usage:
 #   docker build -t typio-ng-build .
-#   docker run --rm -v "$PWD":/app -w /app typio-ng-build npm run build
+#   docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD":/app -w /app typio-ng-build npm run build
 #
 # Pinned to a digest in CI for reproducibility.
 FROM node:22.11-alpine

@@ -2,7 +2,7 @@
 # All targets run inside Docker. No npm/node touches the host.
 
 IMAGE := typio-ng-build:local
-DOCKER_RUN := docker run --rm -v "$$PWD":/app -w /app $(IMAGE)
+DOCKER_RUN := docker run --rm --user "$$(id -u):$$(id -g)" -e HOME=/tmp -v "$$PWD":/app -w /app $(IMAGE)
 
 .PHONY: help image install build build-chrome build-firefox build-edge build-opera \
         zip icons lint format test test-coverage test-e2e clean shell
@@ -63,4 +63,4 @@ clean: ## Delete build outputs and node_modules
 	rm -rf .output dist node_modules .wxt coverage test-results playwright-report
 
 shell: image ## Drop into a shell in the build container
-	docker run --rm -it -v "$$PWD":/app -w /app $(IMAGE) bash
+	docker run --rm --user "$$(id -u):$$(id -g)" -e HOME=/tmp -it -v "$$PWD":/app -w /app $(IMAGE) bash
