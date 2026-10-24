@@ -14,7 +14,7 @@
 //     mcr.microsoft.com/playwright:v1.49.0-jammy \
 //     bash -c "npm ci && xvfb-run npx playwright test tests/e2e/screenshots.spec.ts"
 
-import { test, chromium, type BrowserContext } from '@playwright/test';
+import { test, chromium, type BrowserContext, type Page } from '@playwright/test';
 import path from 'node:path';
 import fs from 'node:fs';
 import http from 'node:http';
@@ -25,6 +25,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const EXT_DIR = path.resolve(__dirname, '../../.output/chrome-mv3');
 const FIXTURE_DIR = path.join(__dirname, 'fixture');
 const OUT_DIR = path.resolve(__dirname, '../../store-assets/screenshots');
+
+// Chromium can only capture the foreground tab; with several pages open in one
+// context a background capture intermittently fails with "Unable to capture screenshot".
+async function shot(page: Page, options: Parameters<Page['screenshot']>[0] = {}) {
+  await page.bringToFront();
+  return page.screenshot(options);
+}
 
 // Content scripts only inject into http(s):// pages by default — file:// requires
 // the user to manually enable "Allow access to file URLs" per extension, which
@@ -203,19 +210,19 @@ test.describe('Store screenshots', () => {
       { timeout: 5000 },
     );
     await popup.waitForTimeout(250);
-    await popup.screenshot({ path: path.join(OUT_DIR, '01-popup-380x520.png') });
+    await shot(popup, { path: path.join(OUT_DIR, '01-popup-380x520.png') });
 
     // 1280×800 composite: fixture full-width, popup raster overlaid top-right.
-    const popupBuf = await popup.screenshot({ omitBackground: false });
+    const popupBuf = await shot(popup, { omitBackground: false });
     await popup.close();
 
     const composite = await context.newPage();
     await composite.setViewportSize(VIEWPORT);
     await composite.setContent(
-      composedHtml(await fixturePage.screenshot({ fullPage: false }), popupBuf, 'top-right'),
+      composedHtml(await shot(fixturePage, { fullPage: false }), popupBuf, 'top-right'),
     );
     await composite.waitForTimeout(200);
-    await composite.screenshot({ path: path.join(OUT_DIR, '01-popup-1280x800.png') });
+    await shot(composite, { path: path.join(OUT_DIR, '01-popup-1280x800.png') });
     await composite.close();
     await fixturePage.close();
   });
@@ -236,7 +243,7 @@ test.describe('Store screenshots', () => {
       }
     });
     await options.waitForTimeout(400);
-    await options.screenshot({ path: path.join(OUT_DIR, '02-options-1280x800.png') });
+    await shot(options, { path: path.join(OUT_DIR, '02-options-1280x800.png') });
     await options.close();
   });
 
@@ -252,7 +259,7 @@ test.describe('Store screenshots', () => {
     await page.goto(fixtureUrl + 'dialog-preview.html');
     await page.waitForLoadState('domcontentloaded');
     await page.waitForTimeout(300);
-    await page.screenshot({ path: path.join(OUT_DIR, '03-recovery-dialog-1280x800.png') });
+    await shot(page, { path: path.join(OUT_DIR, '03-recovery-dialog-1280x800.png') });
     await page.close();
   });
 
@@ -268,7 +275,7 @@ test.describe('Store screenshots', () => {
     await fixturePage.fill('#name', 'Alex');
     await fixturePage.fill('#email', 'alex@example.com');
     await fixturePage.waitForTimeout(900);
-    await fixturePage.screenshot({ path: path.join(OUT_DIR, '04-restored-1280x800.png') });
+    await shot(fixturePage, { path: path.join(OUT_DIR, '04-restored-1280x800.png') });
     await fixturePage.close();
   });
 });
