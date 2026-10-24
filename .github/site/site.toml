@@ -1,0 +1,53 @@
+# Site config for .github/site/build.py. Everything else comes from README.md.
+name = "Typio Chrome Form Recovery NG"
+title = "Typio Form Recovery NG — auto-save web form text"
+headline = "Auto-save and recover text from web forms"
+description = "An MV3 browser extension for Chrome, Firefox, Edge and Opera that saves what you type into forms locally, so a reload or crash does not lose it."
+lang = "en"
+keywords = ["typio form recovery", "form recovery extension", "chrome extension", "auto-save form text", "recover lost text", "manifest v3", "firefox mv3", "privacy"]
+license = "MIT"
+license_url = "https://opensource.org/license/mit"
+category = "BrowserApplication"
+os = "Chrome, Firefox, Edge, Opera"
+programming_language = "TypeScript"
+eyebrow = "Open source · MIT · Manifest V3"
+
+# README "## <name>" sections shown on the home page, in this order (exact titles).
+landing_sections = ["Status", "Goals (v1)", "Non-goals (deferred to v2)"]
+
+# Extra markdown pages besides README; docs/ also holds internal notes, so list pages by hand.
+pages = ["PRIVACY.md", "docs/PERMISSIONS.md", "docs/THREAT_MODEL.md", "docs/TARGETS.md"]
+docs_dir = ""
+
+features = [
+  "Auto-saves text typed into input fields (text, email, url, search, tel, number) and textareas.",
+  "Recovers lost form input after an accidental reload, a crash or navigation away from the page.",
+  "Privacy first: all data stays in the browser's IndexedDB, with no analytics, no telemetry and no servers.",
+  "Refuses to save sensitive fields: passwords, credit card numbers, OTP/2FA codes, hidden fields and fields on /checkout/, /auth/ and /login/ URLs.",
+  "One Manifest V3 codebase for Chrome, Firefox, Edge and Opera.",
+  "Written from scratch under the MIT license; it shares no code with the original Typio.",
+]
+
+[[faq]]
+q = "Is this a fork of the original Typio Form Recovery?"
+a = "No. The codebase is written from scratch under the MIT license. The original Typio by Nicklas Sandell is under CC BY-NC-ND 4.0, which allows no derivatives, so only the user-visible behaviour was re-implemented."
+
+[[faq]]
+q = "Why was the original Typio Form Recovery removed from the Chrome Web Store?"
+a = "It was removed in 2025 because of the Manifest V2 deprecation. This extension is a Manifest V3 successor."
+
+[[faq]]
+q = "Where is my saved text stored?"
+a = "Only in your browser's local IndexedDB. Nothing is sent anywhere: there are no analytics, no telemetry and no servers."
+
+[[faq]]
+q = "Does it save passwords or credit card numbers?"
+a = "No. It refuses to save passwords, credit card numbers, OTP/2FA codes, hidden fields and fields on /checkout/, /auth/ and /login/ URLs."
+
+[[faq]]
+q = "Which browsers are supported?"
+a = "Chrome, Firefox (MV3), Edge and Opera. One chrome-mv3 build covers Chrome, Edge and Opera; Firefox gets its own MV3 build."
+
+[[faq]]
+q = "Does it work in rich text editors or iframes?"
+a = "Not in v1. contentEditable rich text editors, iframe propagation and sync across devices are deferred to v2."
