@@ -40,3 +40,4 @@ Thumbs.db
 
 # Generated screenshots / store assets (regenerated in CI)
 store-assets/generated/
+_site/
