@@ -8,15 +8,15 @@ on:
   push:
     branches: [main]
     paths:
-      - "**.md"
-      - ".github/site/**"
-      - ".github/workflows/pages.yml"
+      - '**.md'
+      - '.github/site/**'
+      - '.github/workflows/pages.yml'
   pull_request:
     branches: [main]
     paths:
-      - "**.md"
-      - ".github/site/**"
-      - ".github/workflows/pages.yml"
+      - '**.md'
+      - '.github/site/**'
+      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 permissions:
