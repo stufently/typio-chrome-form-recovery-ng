@@ -6,7 +6,7 @@
 #   docker run --rm --user "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD":/app -w /app typio-ng-build npm run build
 #
 # Pinned to a digest in CI for reproducibility.
-FROM node:22.11-alpine
+FROM node:22.23.4-alpine
 
 # Tools needed by WXT (puppeteer-extra, sharp for icon generation, etc.) and
 # by web-ext (libxml for the linter). Apt equivalents are intentionally absent
